@@ -1,0 +1,45 @@
+.distintivo_root {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  gap: 4px;
+
+  padding: 4px 12px;
+
+  border-radius: 20px;
+
+  font-size: 13px;
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  font-weight: bold;
+
+  color: var(--cor-texto-claro);
+
+  white-space: nowrap;
+}
+
+.distintivo_primario {
+  background-color: var(--cor-primaria);
+}
+
+.distintivo_secundario {
+  background-color: var(--cor-info);
+}
+
+.distintivo_padrao {
+  background-color: var(--cor-cinza);
+}
+
+.distintivo_erro {
+  background-color: var(--cor-erro);
+}
+
+.distintivo_icone {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  font-size: 15px;
+
+  line-height: 0;
+}

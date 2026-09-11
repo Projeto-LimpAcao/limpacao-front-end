@@ -1,0 +1,15 @@
+.campo-formulario_root {
+  display: flex;
+  flex-direction: column;
+
+  gap: 6px;
+
+  text-align: left;
+}
+
+.campo-formulario_erro {
+  font-size: 13px;
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+
+  color: var(--cor-erro);
+}

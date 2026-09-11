@@ -1,0 +1,28 @@
+.rotulo_root {
+  display: inline-flex;
+  align-items: center;
+
+  gap: 4px;
+
+  font-size: 14px;
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  font-weight: bold;
+
+  cursor: pointer;
+}
+
+.rotulo_padrao {
+  color: var(--cor-texto-escuro);
+}
+
+.rotulo_primario {
+  color: var(--cor-primaria);
+}
+
+.rotulo_erro {
+  color: var(--cor-erro);
+}
+
+.rotulo_obrigatorio {
+  color: var(--cor-erro);
+}

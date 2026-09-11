@@ -1,0 +1,45 @@
+
+.input-texto_root {
+  padding: 0 16px;
+
+  border-radius: 16px;
+
+  border: 2px solid transparent;
+
+  outline: none;
+
+  font-size: 16px;
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+
+  transition: 0.3s;
+
+  color: var(--cor-texto-escuro);
+}
+
+.input-texto_root:disabled {
+  cursor: not-allowed;
+
+  background-color: #f5f5f5;
+
+  opacity: 0.8;
+}
+
+.input-texto_root::placeholder {
+  color: var(--cor-cinza);
+}
+
+.input-texto_root:focus {
+  filter: brightness(0.97);
+}
+
+.input-texto_padrao {
+  border-color: var(--cor-cinza);
+}
+
+.input-texto_primario {
+  border-color: var(--cor-primaria);
+}
+
+.input-texto_erro {
+  border-color: var(--cor-erro);
+}

@@ -1,0 +1,39 @@
+.checkbox_root {
+  display: inline-flex;
+  align-items: center;
+
+  gap: 8px;
+
+  font-size: 16px;
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+
+  cursor: pointer;
+
+  color: var(--cor-texto-escuro);
+}
+
+.checkbox_entrada {
+  width: 18px;
+  height: 18px;
+
+  cursor: pointer;
+
+  transition: 0.3s;
+}
+
+.checkbox_root:has(.checkbox_entrada:disabled) {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.checkbox_padrao .checkbox_entrada {
+  accent-color: var(--cor-cinza);
+}
+
+.checkbox_primario .checkbox_entrada {
+  accent-color: var(--cor-primaria);
+}
+
+.checkbox_erro .checkbox_entrada {
+  accent-color: var(--cor-erro);
+}

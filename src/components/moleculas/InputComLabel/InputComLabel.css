@@ -1,0 +1,60 @@
+.input-com-label_root {
+  display: flex;
+  flex-direction: column;
+
+  gap: 6px;
+
+  text-align: left;
+}
+
+.input-com-label_campo {
+  position: relative;
+
+  display: flex;
+}
+
+.input-com-label_campo:has(.input-com-label_olho) .input-texto_root {
+  padding-right: 44px;
+}
+
+.input-com-label_olho {
+  position: absolute;
+  top: 50%;
+  right: 12px;
+
+  transform: translateY(-50%);
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  padding: 0;
+
+  border: none;
+  background: none;
+
+  font-size: 18px;
+  line-height: 1;
+
+  color: #6b7280;
+
+  cursor: pointer;
+}
+
+.input-com-label_olho:hover {
+  color: #374151;
+}
+
+.input-com-label_erro {
+  font-size: 13px;
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+
+  color: var(--cor-erro);
+}
+
+.input-com-label_dica {
+  font-size: 13px;
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+
+  color: var(--cor-cinza);
+}
