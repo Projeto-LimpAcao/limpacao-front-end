@@ -1,0 +1,17 @@
+/* =====================================================================
+   VARIÁVEIS DOS CAMPOS (Input e Select)
+   ===================================================================== */
+
+:root {
+  --input-fundo: var(--superficie);
+  --input-borda: var(--borda-padrao);
+  --input-texto: var(--texto-principal);
+  --input-label: var(--texto-principal);
+  --input-placeholder: var(--texto-secundario);
+
+  --input-foco: var(--cor-primaria);
+  --input-foco-brilho: var(--cor-primaria-clara);
+
+  --input-erro: var(--cor-perigo);
+  --input-desabilitado: var(--superficie-suave);
+}

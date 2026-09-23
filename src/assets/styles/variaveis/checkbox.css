@@ -1,0 +1,23 @@
+/* =====================================================================
+   VARIÁVEIS DO CHECKBOX
+   ===================================================================== */
+
+:root {
+  --checkbox-radius: var(--raio-sm);
+
+  --checkbox-fundo: var(--superficie);
+  --checkbox-borda: var(--borda-padrao);
+  --checkbox-hover: var(--texto-secundario);
+
+  --checkbox-label: var(--texto-principal);
+  --checkbox-descricao: var(--texto-secundario);
+
+  --checkbox-marcado: var(--cor-primaria);
+  --checkbox-marcado-hover: var(--cor-primaria-escura);
+  --checkbox-check: var(--neutro-0);
+
+  --checkbox-foco: var(--cor-primaria-clara);
+
+  --checkbox-erro: var(--cor-perigo);
+  --checkbox-desabilitado-fundo: var(--superficie-suave);
+}

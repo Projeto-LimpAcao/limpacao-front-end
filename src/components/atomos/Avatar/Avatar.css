@@ -1,0 +1,53 @@
+.avatar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--raio-total);
+  font-weight: var(--peso-negrito);
+  color: var(--neutro-0);
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.avatar--pequeno {
+  width: 32px;
+  height: 32px;
+  font-size: var(--texto-xs);
+}
+
+.avatar--medio {
+  width: 44px;
+  height: 44px;
+  font-size: var(--texto-sm);
+}
+
+.avatar--grande {
+  width: 64px;
+  height: 64px;
+  font-size: var(--texto-lg);
+}
+
+/* CORES */
+
+.avatar--primario {
+  background: var(--cor-primaria);
+}
+
+.avatar--secundario {
+  background: var(--superficie-suave);
+  color: var(--texto-principal);
+}
+
+.avatar--sucesso {
+  background: var(--cor-sucesso);
+}
+
+.avatar--perigo {
+  background: var(--cor-perigo);
+}
+
+.avatar__imagem {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}

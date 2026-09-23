@@ -1,92 +1,56 @@
-.input-container {
+.textarea-container {
   display: flex;
   flex-direction: column;
   gap: var(--espaco-xs);
   width: 100%;
 }
 
-.input-label {
+.textarea-label {
   font-size: var(--texto-sm);
   font-weight: var(--peso-semi);
   color: var(--input-label);
 }
 
-.input-obrigatorio {
+.textarea-obrigatorio {
   color: var(--input-erro);
   margin-left: var(--espaco-xs);
 }
 
-.input-campo {
-  position: relative;
+.textarea {
   width: 100%;
-}
-
-.input-icone {
-  position: absolute;
-  left: 14px;
-  top: 50%;
-  transform: translateY(-50%);
-  display: flex;
-  color: var(--texto-secundario);
-  pointer-events: none;
-}
-
-.input {
-  width: 100%;
+  padding: 12px 14px;
   border-radius: var(--raio-sm);
   border: 1px solid var(--input-borda);
   background: var(--input-fundo);
   color: var(--input-texto);
   font-size: var(--texto-base);
+  line-height: var(--altura-linha-normal);
   outline: none;
+  resize: vertical;
   transition:
     border-color var(--transicao),
     box-shadow var(--transicao);
 }
 
-/* TAMANHOS */
-
-.input--pequeno {
-  height: 36px;
-  padding: 0 12px;
-}
-
-.input--medio {
-  height: 44px;
-  padding: 0 14px;
-}
-
-.input--grande {
-  height: 52px;
-  padding: 0 16px;
-}
-
-/* Abre espaço pro ícone quando ele existe. */
-.input-campo--com-icone .input {
-  padding-left: 42px;
-}
-
-/* ESTADOS */
-
-.input:focus {
+.textarea:focus {
   border-color: var(--input-foco);
   box-shadow: 0 0 0 3px var(--input-foco-brilho);
 }
 
-.input::placeholder {
+.textarea::placeholder {
   color: var(--input-placeholder);
 }
 
-.input:disabled {
+.textarea:disabled {
   background: var(--input-desabilitado);
   cursor: not-allowed;
 }
 
-.input--erro {
+.textarea--erro {
   border-color: var(--input-erro);
 }
 
-.input-mensagem-erro {
+.textarea-mensagem-erro {
   color: var(--input-erro);
   font-size: var(--texto-xs);
 }

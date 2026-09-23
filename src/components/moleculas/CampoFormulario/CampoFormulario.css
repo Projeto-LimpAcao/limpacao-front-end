@@ -1,15 +1,12 @@
 .campo-formulario_root {
   display: flex;
   flex-direction: column;
-
-  gap: 6px;
-
+  gap: var(--espaco-xs);
   text-align: left;
 }
 
 .campo-formulario_erro {
-  font-size: 13px;
-  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
-
-  color: var(--cor-erro);
+  font-size: var(--texto-xs);
+  font-family: var(--fonte-base);
+  color: var(--cor-perigo);
 }
