@@ -1,0 +1,61 @@
+.stat-card {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--espaco-md);
+  width: 100%;
+  padding: var(--espaco-lg);
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  border-radius: var(--raio-lg);
+  background: rgba(255, 255, 255, 0.15);
+  color: inherit;
+  text-align: left;
+  font: inherit;
+  transition:
+    background var(--transicao),
+    transform var(--transicao);
+}
+
+.stat-card--clicavel {
+  cursor: pointer;
+}
+
+.stat-card--clicavel:hover {
+  background: rgba(255, 255, 255, 0.26);
+  transform: translateY(-2px);
+}
+
+.stat-card--ativo {
+  background: rgba(255, 255, 255, 0.3);
+  border-color: rgba(255, 255, 255, 0.6);
+}
+
+.stat-card__textos {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-xs);
+  min-width: 0;
+}
+
+.stat-card__label {
+  font-size: var(--texto-sm);
+  opacity: 0.9;
+}
+
+.stat-card__valor {
+  font-family: var(--fonte-titulo);
+  font-size: var(--texto-2xl);
+  font-weight: var(--peso-negrito);
+  line-height: 1;
+}
+
+.stat-card__icone {
+  display: flex;
+  flex-shrink: 0;
+  opacity: 0.85;
+}
+
+.stat-card:focus-visible {
+  outline: 3px solid rgba(255, 255, 255, 0.7);
+  outline-offset: 2px;
+}

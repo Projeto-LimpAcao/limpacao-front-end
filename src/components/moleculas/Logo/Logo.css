@@ -1,0 +1,83 @@
+.logo {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--espaco-sm);
+  color: inherit;
+  text-decoration: none;
+}
+
+.logo--centralizado {
+  justify-content: center;
+}
+
+.logo__marca {
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  border-radius: var(--raio-md);
+  background: linear-gradient(
+    140deg,
+    var(--verde-claro) 0%,
+    var(--cor-primaria) 100%
+  );
+  color: #ffffff;
+  font-family: var(--fonte-titulo);
+  font-weight: var(--peso-negrito);
+  box-shadow: 0 4px 12px rgba(22, 163, 74, 0.3);
+}
+
+.logo__textos {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.logo__nome {
+  font-family: var(--fonte-titulo);
+  font-weight: var(--peso-negrito);
+  color: var(--texto-principal);
+  line-height: 1.15;
+}
+
+.logo__subtitulo {
+  color: var(--texto-secundario);
+  font-size: var(--texto-xs);
+  line-height: 1.3;
+}
+
+/* ---- Tamanhos ---- */
+
+.logo--pequeno .logo__marca {
+  width: 32px;
+  height: 32px;
+  font-size: var(--texto-base);
+}
+
+.logo--pequeno .logo__nome {
+  font-size: var(--texto-base);
+}
+
+.logo--medio .logo__marca {
+  width: 40px;
+  height: 40px;
+  font-size: var(--texto-lg);
+}
+
+.logo--medio .logo__nome {
+  font-size: var(--texto-xl);
+}
+
+.logo--grande .logo__marca {
+  width: 56px;
+  height: 56px;
+  font-size: var(--texto-2xl);
+  border-radius: var(--raio-lg);
+}
+
+.logo--grande .logo__nome {
+  font-size: var(--texto-2xl);
+}
+
+.logo--grande .logo__subtitulo {
+  font-size: var(--texto-sm);
+}
