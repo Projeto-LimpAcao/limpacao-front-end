@@ -1,0 +1,11 @@
+.grid {
+  display: grid;
+  gap: var(--espaco-lg);
+  grid-template-columns: repeat(
+    auto-fit,
+    minmax(
+      min(var(--grid-minimo, 260px), 100%),
+      calc((100% - (var(--grid-colunas, 3) - 1) * var(--espaco-lg)) / var(--grid-colunas, 3))
+    )
+  );
+}

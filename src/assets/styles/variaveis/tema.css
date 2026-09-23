@@ -1,13 +1,4 @@
-/* =====================================================================
-   TEMA — as cores base do projeto
-   ---------------------------------------------------------------------
-   EDITE AQUI para mudar a cara do projeto inteiro.
-   Todos os outros arquivos de estilo puxam as cores destas variáveis,
-   então trocar --cor-primaria muda botões, links, foco, avatar etc.
 
-   O bloco [data-tema="escuro"] lá embaixo é o modo escuro. Ele só troca
-   os tons neutros — não precisa repetir tudo.
-   ===================================================================== */
 
 :root {
   /* ---- Cor principal do projeto (verde LimpAção) ---- */
