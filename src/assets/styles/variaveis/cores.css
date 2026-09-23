@@ -1,0 +1,23 @@
+:root {
+  /* Barra do topo */
+  --appbar-fundo: var(--superficie);
+  --appbar-texto: var(--texto-principal);
+  --appbar-hover: var(--superficie-suave);
+  --appbar-borda: var(--borda-padrao);
+
+  /* Menu lateral (drawer) */
+  --drawer-fundo: var(--superficie);
+  --drawer-texto: var(--texto-principal);
+  --drawer-hover: var(--superficie-suave);
+
+  /* Rodapé */
+  --footer-fundo: var(--neutro-900);
+  --footer-texto: var(--neutro-50);
+  --footer-texto-suave: var(--neutro-400);
+  --footer-borda: rgba(255, 255, 255, 0.1);
+}
+
+[data-tema="escuro"] {
+  --footer-fundo: #060c17;
+  --footer-borda: var(--borda-padrao);
+}

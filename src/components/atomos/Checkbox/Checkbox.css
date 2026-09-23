@@ -1,39 +1,112 @@
-.checkbox_root {
+.checkbox {
   display: inline-flex;
   align-items: center;
-
-  gap: 8px;
-
-  font-size: 16px;
-  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
-
+  gap: var(--espaco-sm);
   cursor: pointer;
-
-  color: var(--cor-texto-escuro);
+  user-select: none;
 }
 
-.checkbox_entrada {
-  width: 18px;
-  height: 18px;
-
-  cursor: pointer;
-
-  transition: 0.3s;
-}
-
-.checkbox_root:has(.checkbox_entrada:disabled) {
-  opacity: 0.5;
+.checkbox--desabilitado {
   cursor: not-allowed;
+  opacity: 0.6;
 }
 
-.checkbox_padrao .checkbox_entrada {
-  accent-color: var(--cor-cinza);
+/* ===============================
+   A CAIXINHA
+================================ */
+
+.checkbox__input {
+  appearance: none;
+  width: var(--checkbox-tamanho);
+  height: var(--checkbox-tamanho);
+  margin: 0;
+  flex-shrink: 0;
+  border: 2px solid var(--checkbox-borda);
+  border-radius: var(--checkbox-radius);
+  background: var(--checkbox-fundo);
+  display: grid;
+  place-items: center;
+  cursor: inherit;
+  transition:
+    background var(--transicao),
+    border-color var(--transicao),
+    box-shadow var(--transicao);
 }
 
-.checkbox_primario .checkbox_entrada {
-  accent-color: var(--cor-primaria);
+.checkbox__input:hover:not(:disabled) {
+  border-color: var(--checkbox-hover);
 }
 
-.checkbox_erro .checkbox_entrada {
-  accent-color: var(--cor-erro);
+.checkbox__input:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 4px var(--checkbox-foco);
+}
+
+.checkbox__input:checked {
+  background: var(--checkbox-marcado);
+  border-color: var(--checkbox-marcado);
+}
+
+.checkbox__input:checked:hover:not(:disabled) {
+  background: var(--checkbox-marcado-hover);
+}
+
+.checkbox__input:disabled {
+  background: var(--checkbox-desabilitado-fundo);
+}
+
+/* O "V" de marcado */
+.checkbox__input::after {
+  content: "";
+  width: calc(var(--checkbox-tamanho) * 0.24);
+  height: calc(var(--checkbox-tamanho) * 0.52);
+  border: solid var(--checkbox-check);
+  border-width: 0 2px 2px 0;
+  transform: translateY(-1px) rotate(45deg) scale(0);
+  transition: transform 150ms ease;
+}
+
+.checkbox__input:checked::after {
+  transform: translateY(-1px) rotate(45deg) scale(1);
+}
+
+.checkbox--erro .checkbox__input {
+  border-color: var(--checkbox-erro);
+}
+
+/* ===============================
+   TEXTO AO LADO
+================================ */
+
+.checkbox__texto {
+  display: flex;
+  flex-direction: column;
+}
+
+.checkbox__label {
+  font-size: var(--texto-base);
+  font-weight: var(--peso-medio);
+  color: var(--checkbox-label);
+}
+
+.checkbox__descricao {
+  margin-top: 2px;
+  font-size: var(--texto-sm);
+  color: var(--checkbox-descricao);
+}
+
+/* ===============================
+   TAMANHOS
+================================ */
+
+.checkbox--pequeno {
+  --checkbox-tamanho: 16px;
+}
+
+.checkbox--medio {
+  --checkbox-tamanho: 20px;
+}
+
+.checkbox--grande {
+  --checkbox-tamanho: 24px;
 }

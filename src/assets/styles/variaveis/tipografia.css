@@ -1,0 +1,27 @@
+/* =====================================================================
+   TIPOGRAFIA — tamanhos, pesos e famílias de fonte
+   ===================================================================== */
+
+:root {
+  --fonte-base: "Inter", "Segoe UI", Roboto, Arial, sans-serif;
+  --fonte-titulo: "Poppins", "Segoe UI", Arial, sans-serif;
+
+  --texto-xs: 0.75rem;
+  --texto-sm: 0.875rem;
+  --texto-base: 1rem;
+  --texto-lg: 1.125rem;
+  --texto-xl: 1.25rem;
+  --texto-2xl: 1.5rem;
+  --texto-3xl: clamp(1.75rem, 3vw, 2.5rem);
+
+  --altura-linha-apertada: 1.2;
+  --altura-linha-normal: 1.5;
+  --altura-linha-solta: 1.7;
+
+  --peso-normal: 400;
+  --peso-medio: 500;
+  --peso-semi: 600;
+  --peso-negrito: 700;
+
+  --espacamento-letra: 0.01em;
+}

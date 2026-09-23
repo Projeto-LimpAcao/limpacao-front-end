@@ -1,0 +1,36 @@
+.radio-grupo {
+  border: none;
+  padding: 0;
+  margin: 0;
+  min-width: 0;
+}
+
+.radio-grupo__label {
+  padding: 0;
+  margin-bottom: var(--espaco-sm);
+  font-size: var(--texto-sm);
+  font-weight: var(--peso-semi);
+  color: var(--input-label);
+}
+
+.radio-grupo__opcoes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--espaco-md);
+}
+
+.radio-grupo__opcao {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--espaco-sm);
+  cursor: pointer;
+  font-size: var(--texto-sm);
+}
+
+.radio-grupo__input {
+  width: 18px;
+  height: 18px;
+  margin: 0;
+  accent-color: var(--cor-primaria);
+  cursor: pointer;
+}

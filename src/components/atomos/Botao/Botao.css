@@ -1,61 +1,157 @@
-.botao-customizado_root {
-  display: flex;
+.botao {
+  display: inline-flex;
   align-items: center;
   justify-content: center;
-
-  gap: 5px;
-
-  padding: 16px 20px;
-
+  gap: var(--espaco-sm);
   border: none;
-  border-radius: 20px;
-
-  font-size: 16px;
-  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
-
+  border-radius: var(--raio-md);
+  font-weight: var(--peso-semi);
   cursor: pointer;
-
-  color: var(--cor-texto-claro);
-  font-weight: bold;
-
-  transition: 0.3s;
-
+  user-select: none;
   white-space: nowrap;
+  transition:
+    background var(--transicao),
+    color var(--transicao),
+    box-shadow var(--transicao),
+    transform 150ms ease;
 }
 
-.botao-customizado_primario {
-  background-color: var(--cor-primaria);
+.botao--largura-total {
+  width: 100%;
 }
 
-.botao-customizado_secundario {
-  background-color: var(--cor-info);
+/* ==========================
+   TAMANHOS
+========================== */
+
+.botao--pequeno {
+  height: 34px;
+  padding: 0 var(--espaco-md);
+  font-size: var(--texto-sm);
 }
 
-.botao-customizado_padrao {
-  background-color: var(--cor-cinza);
+.botao--medio {
+  height: 42px;
+  padding: 0 var(--espaco-lg);
+  font-size: var(--texto-sm);
 }
 
-.botao-customizado_erro {
-  background-color: var(--cor-erro);
+.botao--grande {
+  height: 50px;
+  padding: 0 var(--espaco-xl);
+  font-size: var(--texto-base);
 }
 
-.botao-customizado_root:hover {
-  filter: brightness(0.8);
+/* Botão só com ícone vira um quadrado. */
+.botao--so-icone.botao--pequeno {
+  width: 34px;
+  padding: 0;
 }
 
-.botao-customizado_icone {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-
-  font-size: 20px;
-
-  line-height: 0;
+.botao--so-icone.botao--medio {
+  width: 42px;
+  padding: 0;
 }
 
-.botao-customizado_root:disabled {
-  opacity: 0.3;
+/* ==========================
+   VARIANTES
+========================== */
+
+.botao--primario {
+  background: var(--botao-primario-fundo);
+  color: var(--botao-primario-texto);
+}
+
+.botao--primario:hover:not(:disabled) {
+  background: var(--botao-primario-fundo-hover);
+}
+
+.botao--secundario {
+  background: var(--botao-secundario-fundo);
+  color: var(--botao-secundario-texto);
+}
+
+.botao--secundario:hover:not(:disabled) {
+  background: var(--botao-secundario-fundo-hover);
+}
+
+.botao--sucesso {
+  background: var(--botao-sucesso-fundo);
+  color: var(--botao-sucesso-texto);
+}
+
+.botao--sucesso:hover:not(:disabled) {
+  background: var(--botao-sucesso-fundo-hover);
+}
+
+.botao--perigo {
+  background: var(--botao-perigo-fundo);
+  color: var(--botao-perigo-texto);
+}
+
+.botao--perigo:hover:not(:disabled) {
+  background: var(--botao-perigo-fundo-hover);
+}
+
+.botao--aviso {
+  background: var(--botao-aviso-fundo);
+  color: var(--botao-aviso-texto);
+}
+
+.botao--aviso:hover:not(:disabled) {
+  background: var(--botao-aviso-fundo-hover);
+}
+
+.botao--outline {
+  background: transparent;
+  color: var(--botao-outline-texto);
+  border: 2px solid var(--botao-outline-borda);
+}
+
+.botao--outline:hover:not(:disabled) {
+  background: var(--botao-outline-hover);
+  color: var(--botao-primario-texto);
+}
+
+.botao--texto {
+  background: transparent;
+  color: var(--botao-texto-cor);
+  padding: 0 var(--espaco-sm);
+}
+
+.botao--texto:hover:not(:disabled) {
+  text-decoration: underline;
+}
+
+/* Fantasma: sem fundo até passar o mouse. Usado em ícones do topo. */
+.botao--fantasma {
+  background: transparent;
+  color: var(--texto-secundario);
+}
+
+.botao--fantasma:hover:not(:disabled) {
+  background: var(--superficie-suave);
+  color: var(--texto-principal);
+}
+
+/* ==========================
+   ESTADOS
+========================== */
+
+.botao:hover:not(:disabled) {
+  transform: translateY(-1px);
+}
+
+.botao:active:not(:disabled) {
+  transform: scale(0.97);
+}
+
+.botao:disabled {
+  opacity: 0.55;
   cursor: not-allowed;
-  pointer-events: none;
-  position: relative;
+}
+
+.botao:focus-visible {
+  outline: 3px solid var(--cor-primaria-clara);
+  outline-offset: 2px;
 }

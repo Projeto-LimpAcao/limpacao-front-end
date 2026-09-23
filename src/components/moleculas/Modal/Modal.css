@@ -1,0 +1,99 @@
+.modal-fundo {
+  position: fixed;
+  inset: 0;
+  z-index: 1200;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--espaco-md);
+  background: rgba(15, 23, 42, 0.55);
+  animation: modal-aparecer 180ms ease;
+}
+
+.modal {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  max-height: 88vh;
+  padding: var(--espaco-lg);
+  border: 1px solid var(--borda-padrao);
+  border-radius: var(--raio-lg);
+  background: var(--superficie);
+  color: var(--texto-principal);
+  box-shadow: var(--sombra-lg);
+  animation: modal-subir 180ms ease;
+}
+
+.modal__topo {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--espaco-md);
+  margin-bottom: var(--espaco-md);
+}
+
+.modal__titulo {
+  font-size: var(--texto-xl);
+  font-weight: var(--peso-negrito);
+}
+
+.modal__fechar {
+  flex-shrink: 0;
+  width: 32px;
+  height: 32px;
+  border: none;
+  border-radius: var(--raio-total);
+  background: var(--superficie-suave);
+  color: inherit;
+  font-size: var(--texto-xl);
+  line-height: 1;
+  cursor: pointer;
+  transition: background var(--transicao);
+}
+
+.modal__fechar:hover {
+  background: var(--borda-padrao);
+}
+
+/* O conteúdo é a única parte que rola — topo e rodapé ficam fixos. */
+.modal__conteudo {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-md);
+  overflow-y: auto;
+  flex: 1;
+  min-height: 0;
+}
+
+.modal__rodape {
+  display: flex;
+  gap: var(--espaco-sm);
+  margin-top: var(--espaco-lg);
+  padding-top: var(--espaco-md);
+  border-top: 1px solid var(--borda-padrao);
+}
+
+@keyframes modal-aparecer {
+  from {
+    opacity: 0;
+  }
+}
+
+@keyframes modal-subir {
+  from {
+    transform: translateY(12px);
+  }
+}
+
+@media (max-width: 560px) {
+  .modal__rodape {
+    flex-direction: column-reverse;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .modal-fundo,
+  .modal {
+    animation: none;
+  }
+}

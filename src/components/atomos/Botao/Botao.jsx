@@ -1,46 +1,36 @@
 import "./Botao.css";
 
-const Botao = ({
-  cor,
-  aoClicar,
-  aoAlterar,
+export default function Botao({
   children,
-  texto,
-  icone,
-  largura,
-  altura,
+  type = "button",
+  onClick,
   desabilitado = false,
-}) => {
-  const estilos = ["botao-customizado_root"];
-
-  switch (cor) {
-    case "primaria":
-      estilos.push("botao-customizado_primario");
-      break;
-    case "secundaria":
-      estilos.push("botao-customizado_secundario");
-      break;
-    case "erro":
-      estilos.push("botao-customizado_erro");
-      break;
-    default:
-      estilos.push("botao-customizado_padrao");
-      break;
-  }
-
+  variante = "primario",
+  tamanho = "medio",
+  larguraTotal = false,
+  icone,
+  title,
+  ariaLabel,
+}) {
   return (
     <button
-      className={estilos.join(" ")}
-      onClick={aoClicar}
-      onChange={aoAlterar}
-      style={{ width: largura, height: altura }}
+      type={type}
+      className={[
+        "botao",
+        `botao--${variante}`,
+        `botao--${tamanho}`,
+        larguraTotal ? "botao--largura-total" : "",
+        !children ? "botao--so-icone" : "",
+      ]
+        .filter(Boolean)
+        .join(" ")}
+      onClick={onClick}
       disabled={desabilitado}
+      title={title}
+      aria-label={ariaLabel}
     >
-      {texto}
-      {icone && <span className="botao-customizado_icone">{icone}</span>}
+      {icone}
       {children}
     </button>
   );
-};
-
-export default Botao;
+}
