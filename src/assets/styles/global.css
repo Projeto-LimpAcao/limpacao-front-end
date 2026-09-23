@@ -1,0 +1,107 @@
+
+@import "./variaveis/tema.css";
+@import "./variaveis/tipografia.css";
+@import "./variaveis/cores.css";
+@import "./variaveis/botoes.css";
+@import "./variaveis/input.css";
+@import "./variaveis/checkbox.css";
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+body,
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+p,
+figure,
+blockquote,
+ul,
+ol {
+  margin: 0;
+}
+
+ul,
+ol {
+  padding: 0;
+  list-style: none;
+}
+
+img,
+picture,
+video,
+canvas,
+svg {
+  display: block;
+  max-width: 100%;
+}
+
+input,
+button,
+textarea,
+select {
+  font: inherit;
+}
+body {
+  min-height: 100vh;
+  background: var(--gradiente-pagina) var(--fundo-pagina) fixed;
+  color: var(--texto-principal);
+  font-family: var(--fonte-base);
+  font-size: var(--texto-base);
+  line-height: var(--altura-linha-normal);
+  letter-spacing: var(--espacamento-letra);
+  -webkit-font-smoothing: antialiased;
+}
+
+::selection {
+  background: var(--cor-primaria);
+  color: var(--neutro-0);
+}
+
+.linhas-1,
+.linhas-2,
+.linhas-3 {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.linhas-1 {
+  -webkit-line-clamp: 1;
+  line-clamp: 1;
+}
+
+.linhas-2 {
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+}
+
+.linhas-3 {
+  -webkit-line-clamp: 3;
+  line-clamp: 3;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-family: var(--fonte-titulo);
+  line-height: var(--altura-linha-apertada);
+}
+
+a {
+  color: var(--cor-primaria);
+}
+
+/* Deixa a rolagem suave ao clicar em links com # */
+html {
+  scroll-behavior: smooth;
+}

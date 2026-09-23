@@ -1,0 +1,47 @@
+/* =====================================================================
+   VARIÁVEIS DOS BOTÕES
+   Todas derivam do tema (tema.css). Mude a cor lá e os botões acompanham.
+   ===================================================================== */
+
+:root {
+  /* Primário */
+  --botao-primario-fundo: var(--cor-primaria);
+  --botao-primario-fundo-hover: var(--cor-primaria-escura);
+  --botao-primario-texto: var(--neutro-0);
+
+  /* Secundário */
+  --botao-secundario-fundo: var(--superficie-suave);
+  --botao-secundario-fundo-hover: var(--borda-padrao);
+  --botao-secundario-texto: var(--texto-principal);
+
+  /* Sucesso */
+  --botao-sucesso-fundo: var(--cor-sucesso);
+  --botao-sucesso-fundo-hover: var(--cor-sucesso-escura);
+  --botao-sucesso-texto: var(--neutro-0);
+
+  /* Perigo */
+  --botao-perigo-fundo: var(--cor-perigo);
+  --botao-perigo-fundo-hover: var(--cor-perigo-escura);
+  --botao-perigo-texto: var(--neutro-0);
+
+  /* Aviso */
+  --botao-aviso-fundo: var(--cor-aviso);
+  --botao-aviso-fundo-hover: var(--cor-aviso-escura);
+  --botao-aviso-texto: var(--neutro-900);
+
+  /* Outline (só borda) */
+  --botao-outline-borda: var(--cor-primaria);
+  --botao-outline-texto: var(--cor-primaria);
+  --botao-outline-hover: var(--cor-primaria);
+
+  /* Texto (sem fundo) */
+  --botao-texto-cor: var(--cor-primaria);
+}
+
+/* No modo escuro o texto dos botões coloridos fica escuro (melhor contraste). */
+[data-tema="escuro"] {
+  --botao-primario-texto: var(--neutro-900);
+  --botao-sucesso-texto: var(--neutro-900);
+  --botao-perigo-texto: var(--neutro-900);
+  --botao-outline-hover: var(--cor-primaria);
+}

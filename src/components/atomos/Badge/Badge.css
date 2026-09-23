@@ -1,0 +1,69 @@
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--espaco-xs);
+  padding: 3px 10px;
+  border: 1px solid transparent;
+  border-radius: var(--raio-total);
+  font-size: var(--texto-xs);
+  font-weight: var(--peso-semi);
+  white-space: nowrap;
+  line-height: 1.5;
+}
+
+.badge--neutro {
+  background: var(--superficie-suave);
+  border-color: var(--borda-padrao);
+  color: var(--texto-secundario);
+}
+
+.badge--primario {
+  background: var(--cor-primaria-clara);
+  border-color: var(--cor-primaria-clara);
+  color: var(--cor-primaria-escura);
+}
+
+.badge--sucesso {
+  background: var(--cor-sucesso-clara);
+  border-color: var(--cor-sucesso-clara);
+  color: var(--cor-sucesso-escura);
+}
+
+.badge--perigo {
+  background: var(--cor-perigo-clara);
+  border-color: var(--cor-perigo-clara);
+  color: var(--cor-perigo-escura);
+}
+
+.badge--aviso {
+  background: var(--cor-aviso-clara);
+  border-color: var(--cor-aviso-clara);
+  color: var(--cor-aviso-escura);
+}
+
+.badge--info {
+  background: var(--cor-info-clara);
+  border-color: var(--cor-info-clara);
+  color: var(--cor-info-escura);
+}
+
+/* No escuro os tons "escuros" ficam ilegíveis — usa o tom claro. */
+[data-tema="escuro"] .badge--primario {
+  color: var(--cor-primaria);
+}
+
+[data-tema="escuro"] .badge--sucesso {
+  color: var(--cor-sucesso);
+}
+
+[data-tema="escuro"] .badge--perigo {
+  color: var(--cor-perigo);
+}
+
+[data-tema="escuro"] .badge--aviso {
+  color: var(--cor-aviso);
+}
+
+[data-tema="escuro"] .badge--info {
+  color: var(--cor-info);
+}

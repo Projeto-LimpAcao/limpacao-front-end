@@ -1,50 +1,56 @@
 import "./InputTexto.css";
+import { useId } from "react";
 
-const InputTexto = ({
-  valor,
-  tipo = "text",
-  placeholder = "Digite aqui",
-  cor = "padrao",
-  aoAlterar,
-  aoBlur,
-  largura = "250px",
-  altura = "50px",
+export default function InputTexto({
+ type = "text",
+  name,
+  id,
+  value,
+  onChange,
+  placeholder = "",
   desabilitado = false,
-}) => {
-  const estilos = ["input-texto_root"];
+  erro = false,
+  mensagemErro = "",
+  tamanho = "medio",
+  label,
+  obrigatorio = false,
+  icone,
+}) {
+  const idGerado = useId();
+  const inputId = id ?? idGerado;
 
-  switch (cor) {
-    case "primaria":
-      estilos.push("input-texto_primario");
-      break;
+  return (
+    <div className="input-container">
+      {label && (
+        <label htmlFor={inputId} className="input-label">
+          {label}
+          {obrigatorio && <span className="input-obrigatorio">*</span>}
+        </label>
+      )}
 
-    case "erro":
-      estilos.push("input-texto_erro");
-      break;
+      <div className={`input-campo ${icone ? "input-campo--com-icone" : ""}`}>
+        {icone && (
+          <span className="input-icone" aria-hidden="true">
+            {icone}
+          </span>
+        )}
 
-    default:
-      estilos.push("input-texto_padrao");
-      break;
-  }
+        <input
+          type={type}
+          id={inputId}
+          name={name}
+          value={value}
+          onChange={onChange}
+          placeholder={placeholder}
+          disabled={desabilitado}
+          aria-invalid={erro || undefined}
+          className={`input input--${tamanho} ${erro ? "input--erro" : ""}`}
+        />
+      </div>
 
-  const inputProps = {
-    className: estilos.join(" "),
-    type: tipo,
-    placeholder,
-    onChange: aoAlterar,
-    onBlur: aoBlur,
-    disabled: desabilitado,
-    style: {
-      width: largura,
-      height: altura,
-    },
-  };
-
-  if (tipo !== "file") {
-    inputProps.value = valor;
-  }
-
-  return <input {...inputProps} />;
-};
-
-export default InputTexto;
+      {erro && mensagemErro && (
+        <span className="input-mensagem-erro">{mensagemErro}</span>
+      )}
+    </div>
+  );
+}

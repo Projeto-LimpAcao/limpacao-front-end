@@ -1,40 +1,51 @@
+import { useId } from "react";
 import "./Checkbox.css";
 
-const Checkbox = ({
+export default function Checkbox({
   marcado = false,
-  texto,
-  cor = "padrao",
-  aoAlterar,
+  onChange,
+  id,
+  label = "",
+  descricao = "",
   desabilitado = false,
-}) => {
-  const estilos = ["checkbox_root"];
-
-  switch (cor) {
-    case "primaria":
-      estilos.push("checkbox_primario");
-      break;
-
-    case "erro":
-      estilos.push("checkbox_erro");
-      break;
-
-    default:
-      estilos.push("checkbox_padrao");
-      break;
-  }
+  erro = false,
+  tamanho = "medio",
+  name,
+}) {
+  // useId é sempre chamado (regra dos hooks); só usamos se não vier um id.
+  const idGerado = useId();
+  const checkboxId = id ?? idGerado;
 
   return (
-    <label className={estilos.join(" ")}>
+    <label
+      htmlFor={checkboxId}
+      className={[
+        "checkbox",
+        `checkbox--${tamanho}`,
+        erro ? "checkbox--erro" : "",
+        desabilitado ? "checkbox--desabilitado" : "",
+      ]
+        .filter(Boolean)
+        .join(" ")}
+    >
       <input
         type="checkbox"
-        className="checkbox_entrada"
+        id={checkboxId}
         checked={marcado}
-        onChange={aoAlterar}
+        onChange={onChange}
         disabled={desabilitado}
+        name={name}
+        className="checkbox__input"
       />
-      {texto && <span className="checkbox_texto">{texto}</span>}
+
+      {(label || descricao) && (
+        <span className="checkbox__texto">
+          {label && <span className="checkbox__label">{label}</span>}
+          {descricao && (
+            <span className="checkbox__descricao">{descricao}</span>
+          )}
+        </span>
+      )}
     </label>
   );
-};
-
-export default Checkbox;
+}
