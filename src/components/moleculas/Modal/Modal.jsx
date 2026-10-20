@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import "./Modal.css";
-import Botao from "../../Atoms/Botao";
+import Botao from "../../atomos/Botao/Botao";
 
 export default function Modal({
   aberto = false,

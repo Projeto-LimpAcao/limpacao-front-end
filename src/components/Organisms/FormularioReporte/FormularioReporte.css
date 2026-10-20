@@ -1,0 +1,79 @@
+.form-reporte {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-lg);
+}
+
+.form-reporte__linha {
+  display: grid;
+  gap: var(--espaco-md);
+  grid-template-columns: repeat(auto-fit, minmax(min(220px, 100%), 1fr));
+  align-items: end;
+}
+
+/* ---- Foto ---- */
+
+.form-reporte__foto {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-sm);
+}
+
+.form-reporte__foto-label {
+  font-size: var(--texto-sm);
+  font-weight: var(--peso-semi);
+  color: var(--input-label);
+}
+
+.form-reporte__foto-area {
+  display: flex;
+  align-items: center;
+  gap: var(--espaco-md);
+  flex-wrap: wrap;
+}
+
+/* O input de arquivo real fica escondido — quem abre é o botão,
+   que dá pra estilizar do jeito que quisermos. */
+.form-reporte__arquivo {
+  display: none;
+}
+
+.form-reporte__previa {
+  position: relative;
+  width: 130px;
+  border: 1px solid var(--borda-padrao);
+  border-radius: var(--raio-md);
+  overflow: hidden;
+}
+
+.form-reporte__previa img {
+  width: 100%;
+  height: 84px;
+  object-fit: cover;
+}
+
+.form-reporte__remover {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  display: grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  border: none;
+  border-radius: var(--raio-total);
+  background: rgba(15, 23, 42, 0.7);
+  color: #ffffff;
+  cursor: pointer;
+}
+
+.form-reporte__remover:hover {
+  background: var(--cor-perigo);
+}
+
+.form-reporte__dica {
+  flex: 1;
+  min-width: 180px;
+  color: var(--texto-secundario);
+  font-size: var(--texto-sm);
+}

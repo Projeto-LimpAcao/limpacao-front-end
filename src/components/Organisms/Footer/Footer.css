@@ -1,0 +1,108 @@
+.footer {
+  background: var(--footer-fundo);
+  color: var(--footer-texto);
+  padding: var(--espaco-2xl) var(--espaco-lg) var(--espaco-lg);
+  margin-top: auto;
+}
+
+.footer__conteudo {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: var(--espaco-xl);
+  max-width: var(--largura-conteudo);
+  margin-inline: auto;
+}
+
+.footer__marca-bloco {
+  flex: 1 1 280px;
+}
+
+.footer__marca {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--espaco-sm);
+  margin-bottom: var(--espaco-sm);
+  font-family: var(--fonte-titulo);
+  font-size: var(--texto-xl);
+  font-weight: var(--peso-negrito);
+}
+
+.footer__marca-icone {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border-radius: var(--raio-md);
+  background: linear-gradient(140deg, var(--verde-claro) 0%, #16a34a 100%);
+  color: #ffffff;
+  font-size: var(--texto-base);
+}
+
+.footer__descricao {
+  font-size: var(--texto-sm);
+  line-height: var(--altura-linha-solta);
+  color: var(--footer-texto-suave);
+  max-width: 34ch;
+}
+
+.footer__colunas {
+  display: flex;
+  flex: 1 1 380px;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: var(--espaco-2xl);
+}
+
+.footer__coluna {
+  min-width: 150px;
+}
+
+.footer__coluna-titulo {
+  display: block;
+  margin-bottom: var(--espaco-md);
+  font-size: var(--texto-base);
+}
+
+.footer__lista {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-sm);
+}
+
+.footer__link {
+  color: var(--footer-texto-suave);
+  text-decoration: none;
+  font-size: var(--texto-sm);
+  transition: color var(--transicao);
+}
+
+.footer__link--botao {
+  border: none;
+  background: none;
+  padding: 0;
+  font: inherit;
+  cursor: pointer;
+  text-align: left;
+}
+
+.footer__link:hover,
+.footer__link:focus-visible {
+  color: var(--verde-claro);
+}
+
+.footer__base {
+  max-width: var(--largura-conteudo);
+  margin: var(--espaco-xl) auto 0;
+  padding-top: var(--espaco-md);
+  border-top: 1px solid var(--footer-borda);
+  font-size: var(--texto-xs);
+  color: var(--footer-texto-suave);
+}
+
+@media (max-width: 700px) {
+  .footer__colunas {
+    justify-content: flex-start;
+    gap: var(--espaco-xl);
+  }
+}

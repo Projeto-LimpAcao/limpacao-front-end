@@ -1,0 +1,109 @@
+.painel-stats {
+  background: var(--gradiente-destaque);
+  color: #ffffff;
+  padding-block: var(--espaco-2xl);
+  box-shadow: var(--sombra-md);
+}
+
+.painel-stats__interno {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-xl);
+  max-width: var(--largura-conteudo);
+  margin-inline: auto;
+  padding-inline: var(--espaco-lg);
+}
+
+.painel-stats__cabecalho {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: var(--espaco-lg);
+  flex-wrap: wrap;
+}
+
+.painel-stats__titulos {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-sm);
+  max-width: 46rem;
+}
+
+.painel-stats__etiqueta {
+  font-size: var(--texto-xs);
+  text-transform: uppercase;
+  letter-spacing: 0.2em;
+  opacity: 0.85;
+}
+
+.painel-stats__titulo {
+  font-size: var(--texto-3xl);
+  font-weight: var(--peso-negrito);
+}
+
+.painel-stats__descricao {
+  font-size: var(--texto-sm);
+  opacity: 0.9;
+  line-height: var(--altura-linha-solta);
+}
+
+/* ---- Caixa da taxa de resolução ---- */
+
+.painel-stats__taxa {
+  padding: var(--espaco-md) var(--espaco-lg);
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  border-radius: var(--raio-lg);
+  background: rgba(255, 255, 255, 0.12);
+  min-width: 200px;
+}
+
+.painel-stats__taxa-label {
+  font-size: var(--texto-sm);
+  opacity: 0.9;
+}
+
+.painel-stats__taxa-valor {
+  margin-top: var(--espaco-xs);
+  font-family: var(--fonte-titulo);
+  font-size: var(--texto-3xl);
+  font-weight: var(--peso-negrito);
+  line-height: 1;
+}
+
+.painel-stats__barra {
+  margin-top: var(--espaco-sm);
+  height: 8px;
+  border-radius: var(--raio-total);
+  background: rgba(255, 255, 255, 0.25);
+  overflow: hidden;
+}
+
+.painel-stats__barra span {
+  display: block;
+  height: 100%;
+  border-radius: var(--raio-total);
+  background: #ffffff;
+  transition: width 400ms ease;
+}
+
+/* ---- Cartões ---- */
+
+.painel-stats__cartoes {
+  display: grid;
+  gap: var(--espaco-md);
+  grid-template-columns: repeat(auto-fit, minmax(min(220px, 100%), 1fr));
+}
+
+@media (max-width: 700px) {
+  .painel-stats {
+    padding-block: var(--espaco-xl);
+  }
+
+  .painel-stats__interno {
+    padding-inline: var(--espaco-md);
+  }
+
+  .painel-stats__taxa {
+    width: 100%;
+  }
+}

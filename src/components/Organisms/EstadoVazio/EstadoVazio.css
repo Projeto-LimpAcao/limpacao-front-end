@@ -1,0 +1,28 @@
+.estado-vazio {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--espaco-md);
+  max-width: 40rem;
+  margin-inline: auto;
+  padding: var(--espaco-2xl) var(--espaco-lg);
+  border: 1px solid var(--borda-padrao);
+  border-radius: var(--raio-lg);
+  background: var(--superficie);
+  text-align: center;
+}
+
+.estado-vazio__icone {
+  color: var(--texto-secundario);
+  opacity: 0.6;
+}
+
+.estado-vazio__titulo {
+  font-size: var(--texto-xl);
+  font-weight: var(--peso-negrito);
+}
+
+.estado-vazio__descricao {
+  color: var(--texto-secundario);
+  max-width: 42ch;
+}
