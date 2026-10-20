@@ -1,0 +1,127 @@
+.appbar {
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+  background: var(--appbar-fundo);
+  color: var(--appbar-texto);
+  border-bottom: 1px solid var(--appbar-borda);
+  box-shadow: var(--sombra-sm);
+}
+
+.appbar__interno {
+  display: flex;
+  align-items: center;
+  gap: var(--espaco-md);
+  max-width: var(--largura-conteudo);
+  margin-inline: auto;
+  padding: var(--espaco-sm) var(--espaco-lg);
+  min-height: 68px;
+}
+
+.appbar__hamburguer {
+  display: none;
+  align-items: center;
+  border: none;
+  background: transparent;
+  color: inherit;
+  padding: var(--espaco-xs);
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.appbar__logo {
+  text-decoration: none;
+  flex-shrink: 0;
+}
+
+/* ---- Abas do meio ---- */
+
+.appbar__abas {
+  display: flex;
+  align-items: center;
+  gap: var(--espaco-xs);
+  margin-inline: auto;
+  padding: 5px;
+  border: 1px solid var(--borda-padrao);
+  border-radius: var(--raio-total);
+  background: var(--superficie-suave);
+}
+
+.appbar__aba {
+  padding: 7px 16px;
+  border-radius: var(--raio-total);
+  color: var(--texto-secundario);
+  text-decoration: none;
+  font-size: var(--texto-sm);
+  font-weight: var(--peso-medio);
+  white-space: nowrap;
+  transition:
+    background var(--transicao),
+    color var(--transicao);
+}
+
+.appbar__aba:hover {
+  background: var(--superficie);
+  color: var(--texto-principal);
+}
+
+.appbar__aba--ativa {
+  background: var(--cor-primaria);
+  color: var(--botao-primario-texto);
+}
+
+.appbar__aba--ativa:hover {
+  background: var(--cor-primaria-escura);
+  color: var(--botao-primario-texto);
+}
+
+/* ---- Ações da direita ---- */
+
+.appbar__acoes {
+  display: flex;
+  align-items: center;
+  gap: var(--espaco-sm);
+  flex-shrink: 0;
+}
+
+.appbar__saudacao {
+  font-size: var(--texto-sm);
+  color: var(--texto-secundario);
+  white-space: nowrap;
+}
+
+/* ---- Telas médias: esconde a saudação ---- */
+
+@media (max-width: 1100px) {
+  .appbar__saudacao {
+    display: none;
+  }
+}
+
+/* ---- Telas pequenas: abas viram menu lateral ---- */
+
+@media (max-width: 900px) {
+  .appbar__hamburguer {
+    display: flex;
+  }
+
+  .appbar__abas {
+    display: none;
+  }
+
+  .appbar__logo {
+    margin-right: auto;
+  }
+}
+
+@media (max-width: 560px) {
+  .appbar__interno {
+    padding-inline: var(--espaco-md);
+    gap: var(--espaco-sm);
+  }
+
+  /* Sobra só o "+" no botão de reportar. */
+  .appbar__texto-reportar {
+    display: none;
+  }
+}

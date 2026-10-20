@@ -1,0 +1,92 @@
+.chat__resumo {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--espaco-sm);
+}
+
+.chat__contador {
+  padding: 3px 12px;
+  border-radius: var(--raio-total);
+  background: var(--superficie-suave);
+  color: var(--texto-secundario);
+  font-size: var(--texto-xs);
+}
+
+/* ---- Lista de mensagens ---- */
+
+.chat__lista {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-sm);
+  max-height: 260px;
+  overflow-y: auto;
+  padding: var(--espaco-md);
+  border: 1px solid var(--borda-padrao);
+  border-radius: var(--raio-md);
+  background: var(--superficie-suave);
+}
+
+.chat__mensagem {
+  padding: var(--espaco-sm) var(--espaco-md);
+  border-radius: var(--raio-md);
+  background: var(--superficie);
+  box-shadow: var(--sombra-sm);
+}
+
+.chat__mensagem-topo {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--espaco-sm);
+  margin-bottom: var(--espaco-xs);
+  font-size: var(--texto-xs);
+  color: var(--texto-secundario);
+}
+
+.chat__mensagem-topo strong {
+  color: var(--texto-principal);
+}
+
+.chat__mensagem p {
+  font-size: var(--texto-sm);
+  line-height: var(--altura-linha-solta);
+}
+
+.chat__vazio {
+  color: var(--texto-secundario);
+  font-size: var(--texto-sm);
+}
+
+/* ---- Ofertas de ajuda ---- */
+
+.chat__ofertas {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-sm);
+  padding-top: var(--espaco-md);
+  border-top: 1px solid var(--borda-padrao);
+}
+
+.chat__ofertas-titulo {
+  font-size: var(--texto-base);
+  font-weight: var(--peso-semi);
+}
+
+.chat__oferta {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: var(--espaco-md);
+  border: 1px solid var(--borda-padrao);
+  border-radius: var(--raio-md);
+  font-size: var(--texto-sm);
+}
+
+.chat__oferta a {
+  width: fit-content;
+}
+
+.chat__oferta-data {
+  color: var(--texto-secundario);
+  font-size: var(--texto-xs);
+}
