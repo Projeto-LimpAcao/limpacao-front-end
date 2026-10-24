@@ -33,3 +33,7 @@ export function lerImagemComoTexto(arquivo) {
     leitor.readAsDataURL(arquivo);
   });
 }
+
+export function ehEmailValido(email) {
+  return typeof email === "string" && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim());
+}

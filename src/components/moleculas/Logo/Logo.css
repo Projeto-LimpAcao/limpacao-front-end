@@ -35,12 +35,12 @@
 .logo__nome {
   font-family: var(--fonte-titulo);
   font-weight: var(--peso-negrito);
-  color: var(--texto-principal);
+  color: #ffffff;
   line-height: 1.15;
 }
 
 .logo__subtitulo {
-  color: var(--texto-secundario);
+  color: rgba(255, 255, 255, 0.76);
   font-size: var(--texto-xs);
   line-height: 1.3;
 }
