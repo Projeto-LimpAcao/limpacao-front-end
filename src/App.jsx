@@ -1,7 +1,7 @@
-import Login from './components/pages/Login/Login'
+import Rotas from './rotas/Rotas';
 
 function App() {
-  return <Login />
+  return <Rotas />;
 }
 
-export default App
+export default App;

@@ -2,7 +2,8 @@
 export const CAMINHOS = {
   home: "/",
   login: "/login",
-  meusReportes: "/meus-reportes",
   trabalhos: "/trabalhos",
+  reportes: "/reportes",
+  meusReportes: "/meus-reportes",
   perfil: "/perfil",
 };

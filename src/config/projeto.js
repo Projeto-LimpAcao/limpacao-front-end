@@ -20,8 +20,7 @@ export const COLUNAS_RODAPE = [
     titulo: "Acesso",
     links: [
       { label: "Início", href: "/" },
-      { label: "Reportes", href: "/reportes" },
-      { label: "Perfil", href: "/perfil" },
+      { label: "Login", href: "/login" },
     ],
   },
   {
@@ -36,9 +35,10 @@ export const COLUNAS_RODAPE = [
 
 export const MENU = [
   { label: "Início", caminho: "/", icone: null, privado: false },
+  { label: "Trabalhos", caminho: "/trabalhos", icone: null, privado: false },
   { label: "Reportes", caminho: "/reportes", icone: null, privado: false },
-  { label: "Minha área", caminho: "/minha-area", icone: null, privado: true },
-  { label: "Sobre", caminho: "/sobre", icone: null, privado: false },
+  { label: "Perfil", caminho: "/perfil", icone: null, privado: true },
+  { label: "Login", caminho: "/login", icone: null, privado: false },
 ];
 
 export const MOSTRAR_BOTAO_TEMA = true;
