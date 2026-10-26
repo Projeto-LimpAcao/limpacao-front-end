@@ -11,6 +11,7 @@ import { CAMINHOS } from "../../../rotas/caminhos";
 
 export default function AppLayout({ children, onNovoReporte }) {
   const [sobreAberto, setSobreAberto] = useState(false);
+  const [drawerAberto, setDrawerAberto] = useState(false);
   const { usuario, estaLogado, sair } = useAuth();
   const navegar = useNavigate();
 
@@ -28,6 +29,9 @@ export default function AppLayout({ children, onNovoReporte }) {
     onNovoReporte?.();
   };
 
+  const aoAbrirMenu = () => setDrawerAberto(true);
+  const aoFecharMenu = () => setDrawerAberto(false);
+
   return (
     <div className="app-layout">
       <AppBar
@@ -35,6 +39,9 @@ export default function AppLayout({ children, onNovoReporte }) {
         usuario={usuario}
         estaLogado={estaLogado}
         caminhoHome={CAMINHOS.home}
+        drawerAberto={drawerAberto}
+        onAbrirMenu={aoAbrirMenu}
+        onFecharMenu={aoFecharMenu}
         onSair={aoSair}
         onNovoReporte={aoReportar}
       />

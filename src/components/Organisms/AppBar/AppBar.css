@@ -118,6 +118,16 @@
   .appbar__interno {
     padding-inline: var(--espaco-md);
     gap: var(--espaco-sm);
+    min-height: 60px;
+  }
+
+  .appbar__logo {
+    transform: scale(0.92);
+    transform-origin: left center;
+  }
+
+  .appbar__acoes {
+    gap: var(--espaco-xs);
   }
 
   /* Sobra só o "+" no botão de reportar. */

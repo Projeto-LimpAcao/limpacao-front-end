@@ -117,3 +117,48 @@
   font-size: var(--texto-sm);
   line-height: var(--altura-linha-solta);
 }
+
+@media (max-width: 780px) {
+  .trabalhos__destaque {
+    gap: var(--espaco-lg);
+    padding-block: var(--espaco-xl);
+  }
+
+  .trabalhos__titulo {
+    font-size: clamp(2.2rem, 7vw, 3rem);
+  }
+}
+
+@media (max-width: 560px) {
+  .trabalhos__destaque {
+    padding-block: var(--espaco-lg);
+  }
+
+  .trabalhos__texto {
+    gap: var(--espaco-sm);
+  }
+
+  .trabalhos__titulo {
+    font-size: clamp(1.9rem, 9vw, 2.6rem);
+  }
+
+  .trabalhos__chamada {
+    font-size: var(--texto-base);
+  }
+
+  .trabalhos__botoes {
+    flex-direction: column;
+  }
+
+  .trabalhos__botoes a {
+    width: 100%;
+  }
+
+  .trabalhos__botoes a > * {
+    width: 100%;
+  }
+
+  .trabalhos__foto img {
+    max-height: 220px;
+  }
+}
