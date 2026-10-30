@@ -1,3 +1,4 @@
+import { useRef } from "react";
 import { ImagePlus, LoaderCircle, Search, Trash2 } from "lucide-react";
 
 import "./FormularioReporte.css";
@@ -20,6 +21,8 @@ export default function FormularioReporte({
   buscandoCep = false,
   erroCep = "",
 }) {
+  const entradaArquivo = useRef(null);
+
   const alterarCep = (evento) => {
     const digitos = evento.target.value.replace(/\D/g, "").slice(0, 8);
     const cep = digitos.replace(/^(\d{5})(\d)/, "$1-$2");
@@ -155,12 +158,17 @@ export default function FormularioReporte({
         <div className="form-reporte__foto-area">
           <input
             type="file"
-            accept="image/*"
+            accept="image/jpeg,image/png,image/gif,image/webp"
             onChange={onArquivoSelecionado}
             className="form-reporte__arquivo"
+            ref={entradaArquivo}
           />
 
-          <Botao variante="secundario" icone={<ImagePlus size={16} />}>
+          <Botao
+            variante="secundario"
+            icone={<ImagePlus size={16} />}
+            onClick={() => entradaArquivo.current?.click()}
+          >
             {formulario.imagem ? "Trocar foto" : "Escolher foto"}
           </Botao>
 

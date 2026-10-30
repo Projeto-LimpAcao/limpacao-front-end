@@ -21,7 +21,16 @@ import {
 import { useAuth, useRelatorios } from "../../../hooks";
 import { buscarEnderecoPorCep } from "../../../services/cepService";
 import { filtrarReportes } from "../../../utils/filtrar";
+import { lerImagemComoTexto } from "../../utils/formatar";
 import { CAMINHOS } from "../../../rotas/caminhos";
+
+const TAMANHO_MAXIMO_IMAGEM = 5 * 1024 * 1024;
+const TIPOS_IMAGEM_SUPORTADOS = [
+  "image/jpeg",
+  "image/png",
+  "image/gif",
+  "image/webp",
+];
 
 /* Como o formulário começa quando é um cadastro novo. */
 const FORMULARIO_VAZIO = {
@@ -214,6 +223,38 @@ export default function Reportes({ somenteMeus = false }) {
         setBuscandoCep(false);
       }
     }
+  };
+
+  const selecionarImagem = async (evento) => {
+    const arquivo = evento.target.files?.[0];
+    evento.target.value = "";
+    if (!arquivo) return;
+
+    if (!TIPOS_IMAGEM_SUPORTADOS.includes(arquivo.type)) {
+      setErroForm("Use uma imagem nos formatos JPEG, PNG, GIF ou WebP.");
+      return;
+    }
+
+    if (arquivo.size > TAMANHO_MAXIMO_IMAGEM) {
+      setErroForm("A imagem deve ter no máximo 5 MB.");
+      return;
+    }
+
+    setErroForm("");
+    try {
+      const imagem = await lerImagemComoTexto(arquivo);
+      if (typeof imagem !== "string") {
+        throw new Error("Não foi possível converter a imagem.");
+      }
+      setFormulario((atual) => ({ ...atual, imagem }));
+    } catch (problema) {
+      setErroForm(problema.message);
+    }
+  };
+
+  const removerImagem = () => {
+    setFormulario((atual) => ({ ...atual, imagem: "" }));
+    setErroForm("");
   };
 
   /* Validação no front. O backend deve validar de novo — nunca confie
@@ -409,6 +450,8 @@ export default function Reportes({ somenteMeus = false }) {
           onBuscarCep={buscarCep}
           buscandoCep={buscandoCep}
           erroCep={erroCep}
+          onArquivoSelecionado={selecionarImagem}
+          onRemoverImagem={removerImagem}
         />
       </Modal>
 

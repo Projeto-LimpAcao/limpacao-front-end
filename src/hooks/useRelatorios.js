@@ -1,4 +1,6 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { lerUsuarioSalvo } from "../services/authService";
+import * as relatoriosService from "../services/relatoriosService";
 
 const RELATORIOS_INICIAIS = [
   {
@@ -61,9 +63,34 @@ const RELATORIOS_INICIAIS = [
 ];
 
 export function useRelatorios() {
-  const [relatorios, setRelatorios] = useState(RELATORIOS_INICIAIS);
-  const [carregando, setCarregando] = useState(false);
+  const [sessao] = useState(() => lerUsuarioSalvo());
+  const usuarioAutenticado = Boolean(sessao);
+  const [relatorios, setRelatorios] = useState(() =>
+    usuarioAutenticado ? [] : RELATORIOS_INICIAIS,
+  );
+  const [carregando, setCarregando] = useState(usuarioAutenticado);
   const [erro, setErro] = useState("");
+
+  useEffect(() => {
+    if (!usuarioAutenticado) return undefined;
+
+    let ativo = true;
+    relatoriosService
+      .listarReportes()
+      .then((resultado) => {
+        if (ativo) setRelatorios(resultado);
+      })
+      .catch((problema) => {
+        if (ativo) setErro(problema.message);
+      })
+      .finally(() => {
+        if (ativo) setCarregando(false);
+      });
+
+    return () => {
+      ativo = false;
+    };
+  }, [usuarioAutenticado]);
 
   const meusRelatorios = useMemo(
     () => relatorios.filter((reporte) => reporte.souDono),
@@ -81,30 +108,11 @@ export function useRelatorios() {
   }, [meusRelatorios, relatorios]);
 
   const criar = async (formulario) => {
-    const novo = {
-      id: Date.now(),
-      titulo: formulario.titulo,
-      localizacao: formulario.localizacao,
-      cep: formulario.cep,
-      rua: formulario.rua,
-      numero: formulario.numero,
-      cidade: formulario.cidade,
-      estado: formulario.estado,
-      descricao: formulario.descricao,
-      urgencia: formulario.urgencia || "media",
-      status: "pending",
-      autor: "Você",
-      data: new Date().toISOString(),
-      imagem: formulario.imagem || "",
-      multirao: Boolean(formulario.multirao),
-      participantes: 0,
-      ajudantes: 0,
-      mensagens: [],
-      ofertas: [],
-      souDono: true,
-      minhaParticipacao: { ajudando: false, participando: false },
-    };
+    if (!usuarioAutenticado) {
+      throw new Error("Entre na sua conta para cadastrar um reporte.");
+    }
 
+    const novo = await relatoriosService.criarReporte(formulario);
     setRelatorios((atual) => [novo, ...atual]);
     return novo;
   };
@@ -137,9 +145,22 @@ export function useRelatorios() {
   };
 
   const alterarStatus = async (reporte, novoStatus) => {
+    const atualizado = await relatoriosService.atualizarStatusReporte(
+      reporte.id,
+      novoStatus,
+    );
+
     setRelatorios((atual) =>
       atual.map((item) =>
-        item.id === reporte.id ? { ...item, status: novoStatus } : item,
+        item.id === reporte.id
+          ? {
+              ...item,
+              ...atualizado,
+              mensagens: item.mensagens,
+              ofertas: item.ofertas,
+              minhaParticipacao: item.minhaParticipacao,
+            }
+          : item,
       ),
     );
   };
@@ -216,22 +237,19 @@ export function useRelatorios() {
     );
   };
 
-  return useMemo(
-    () => ({
-      relatorios,
-      meusRelatorios,
-      estatisticas,
-      carregando,
-      erro,
-      criar,
-      atualizar,
-      excluir,
-      alterarStatus,
-      alternarParticipacao,
-      carregarDetalhes,
-      enviarMensagem,
-      enviarOferta,
-    }),
-    [carregando, erro, estatisticas, meusRelatorios, relatorios],
-  );
+  return {
+    relatorios,
+    meusRelatorios,
+    estatisticas,
+    carregando,
+    erro,
+    criar,
+    atualizar,
+    excluir,
+    alterarStatus,
+    alternarParticipacao,
+    carregarDetalhes,
+    enviarMensagem,
+    enviarOferta,
+  };
 }
