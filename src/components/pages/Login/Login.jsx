@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
+import { Navigate, useLocation, useNavigate } from "react-router-dom";
 import { ShieldCheck, Eye, EyeOff } from "lucide-react";
 
 import "./Login.css";
@@ -10,25 +10,9 @@ import Alerta from "../../moleculas/Alerta/Alerta";
 import Logo from "../../moleculas/Logo/Logo";
 import { CAMINHOS } from "../../../rotas/caminhos";
 import { validarCadastro, validarLogin } from "../../utils/validarFormulario";
+import { useAuth } from "../../../hooks";
 
 const Input = InputTexto;
-
-function useAuth() {
-  return {
-    entrar: async (email, senha) => {
-      if (!email || !senha) {
-        throw new Error("E-mail e senha são obrigatórios.");
-      }
-      return true;
-    },
-    cadastrar: async (nome, email, senha) => {
-      if (!nome || !email || !senha) {
-        throw new Error("Preencha todos os campos para continuar.");
-      }
-      return true;
-    },
-  };
-}
 
 const FORMULARIO_VAZIO = {
   nome: "",
@@ -47,11 +31,15 @@ export default function Login() {
   const [mostrarSenha, setMostrarSenha] = useState(false);
   const [mostrarConfirmarSenha, setMostrarConfirmarSenha] = useState(false);
 
-  const { entrar, cadastrar } = useAuth();
+  const { usuario, entrar, cadastrar } = useAuth();
   const navegar = useNavigate();
   const local = useLocation();
 
   const destino = local.state?.de ?? CAMINHOS.home;
+
+  if (usuario) {
+    return <Navigate to={destino} replace />;
+  }
 
   const alterar = (campo) => (evento) => {
     setFormulario((atual) => ({ ...atual, [campo]: evento.target.value }));

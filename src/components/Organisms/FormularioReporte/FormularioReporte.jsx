@@ -1,4 +1,4 @@
-import { ImagePlus, Trash2 } from "lucide-react";
+import { ImagePlus, LoaderCircle, Search, Trash2 } from "lucide-react";
 
 import "./FormularioReporte.css";
 import Input from "../../atomos/InputTexto/Inputexto";
@@ -16,7 +16,16 @@ export default function FormularioReporte({
   erroGeral = "",
   onArquivoSelecionado,
   onRemoverImagem,
+  onBuscarCep,
+  buscandoCep = false,
+  erroCep = "",
 }) {
+  const alterarCep = (evento) => {
+    const digitos = evento.target.value.replace(/\D/g, "").slice(0, 8);
+    const cep = digitos.replace(/^(\d{5})(\d)/, "$1-$2");
+    onAlterar("cep", cep);
+  };
+
   return (
     <div className="form-reporte">
       <Alerta tipo="erro">{erroGeral}</Alerta>
@@ -31,17 +40,82 @@ export default function FormularioReporte({
           erro={Boolean(erros.titulo)}
           mensagemErro={erros.titulo}
         />
+      </div>
+
+      <fieldset className="form-reporte__endereco">
+        <legend className="form-reporte__endereco-titulo">Endereço do local</legend>
+        <p className="form-reporte__endereco-ajuda">
+          Informe o CEP para preencher rua, cidade e estado automaticamente.
+        </p>
+
+        <div className="form-reporte__cep">
+          <Input
+            label="CEP"
+            name="cep"
+            placeholder="00000-000"
+            value={formulario.cep}
+            onChange={alterarCep}
+            erro={Boolean(erroCep)}
+            mensagemErro={erroCep}
+          />
+          <Botao
+            variante="secundario"
+            icone={
+              buscandoCep ? (
+                <LoaderCircle size={16} className="form-reporte__spinner" />
+              ) : (
+                <Search size={16} />
+              )
+            }
+            onClick={() => onBuscarCep(formulario.cep)}
+            desabilitado={
+              buscandoCep || formulario.cep.replace(/\D/g, "").length !== 8
+            }
+            ariaLabel={buscandoCep ? "Buscando CEP" : "Buscar endereço pelo CEP"}
+          >
+            {buscandoCep ? "Buscando..." : "Buscar CEP"}
+          </Botao>
+        </div>
+
+        <div className="form-reporte__linha">
+          <Input
+            label="Rua"
+            placeholder="Preenchida pela busca do CEP"
+            value={formulario.rua}
+            onChange={(evento) => onAlterar("rua", evento.target.value)}
+          />
+          <Input
+            label="Número"
+            placeholder="Ex: 123 ou S/N"
+            value={formulario.numero}
+            onChange={(evento) => onAlterar("numero", evento.target.value)}
+          />
+        </div>
+
+        <div className="form-reporte__linha">
+          <Input
+            label="Cidade"
+            placeholder="Preenchida pela busca do CEP"
+            value={formulario.cidade}
+            onChange={(evento) => onAlterar("cidade", evento.target.value)}
+          />
+          <Input
+            label="Estado"
+            placeholder="UF"
+            value={formulario.estado}
+            onChange={(evento) => onAlterar("estado", evento.target.value)}
+          />
+        </div>
 
         <Input
-          label="Localização"
-          obrigatorio
-          placeholder="Ex: Praia da Armação, Florianópolis"
+          label="Bairro ou ponto de referência"
+          placeholder="Ex: Praia da Armação, próximo à praça"
           value={formulario.localizacao}
           onChange={(evento) => onAlterar("localizacao", evento.target.value)}
           erro={Boolean(erros.localizacao)}
           mensagemErro={erros.localizacao}
         />
-      </div>
+      </fieldset>
 
       <Textarea
         label="Descrição"

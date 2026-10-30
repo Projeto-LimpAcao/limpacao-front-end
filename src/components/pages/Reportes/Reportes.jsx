@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 import "./Reportes.css";
@@ -19,12 +19,18 @@ import {
   PainelFiltros,
 } from "../../index";
 import { useAuth, useRelatorios } from "../../../hooks";
+import { buscarEnderecoPorCep } from "../../../services/cepService";
 import { filtrarReportes } from "../../../utils/filtrar";
 import { CAMINHOS } from "../../../rotas/caminhos";
 
 /* Como o formulário começa quando é um cadastro novo. */
 const FORMULARIO_VAZIO = {
   titulo: "",
+  cep: "",
+  rua: "",
+  numero: "",
+  cidade: "",
+  estado: "",
   localizacao: "",
   descricao: "",
   urgencia: "medium",
@@ -32,18 +38,39 @@ const FORMULARIO_VAZIO = {
   multirao: false,
 };
 
-/**
- * Lista de reportes.
- *
- * A MESMA página atende duas rotas:
- *   /                → todos os reportes
- *   /meus-reportes   → só os meus (somenteMeus)
- *
- * É a tela mais cheia do app, então ela está dividida em blocos:
- *   1. estado (o que está aberto, o que está sendo editado)
- *   2. ações (salvar, excluir, ajudar...)
- *   3. o que aparece na tela
- */
+function montarEndereco(formulario) {
+  return [
+    String(formulario.rua ?? "").trim(),
+    String(formulario.numero ?? "").trim()
+      ? `nº ${String(formulario.numero).trim()}`
+      : "",
+    String(formulario.cidade ?? "").trim(),
+    String(formulario.estado ?? "").trim(),
+    String(formulario.cep ?? "").trim(),
+  ]
+    .filter(Boolean)
+    .join(", ");
+}
+
+function montarLocalizacao(formulario) {
+  const endereco = montarEndereco(formulario);
+  return [String(formulario.localizacao ?? "").trim(), endereco]
+    .filter(Boolean)
+    .join(" - ");
+}
+
+function extrairReferencia(reporte) {
+  const endereco = montarEndereco(reporte);
+  const localizacao = String(reporte.localizacao ?? "");
+  if (!endereco) return localizacao;
+
+  const partes = localizacao.split(" - ");
+  if (partes.at(-1) === endereco) {
+    return partes.slice(0, -1).join(" - ");
+  }
+  return localizacao === endereco ? "" : localizacao;
+}
+
 export default function Reportes({ somenteMeus = false }) {
   const { usuario } = useAuth();
   const navegar = useNavigate();
@@ -64,7 +91,6 @@ export default function Reportes({ somenteMeus = false }) {
     enviarOferta,
   } = useRelatorios();
 
-  /* ---------------- 1. Estado da tela ---------------- */
 
   const [filtros, setFiltros] = useState({
     busca: "",
@@ -79,6 +105,9 @@ export default function Reportes({ somenteMeus = false }) {
   const [erros, setErros] = useState({});
   const [erroForm, setErroForm] = useState("");
   const [salvando, setSalvando] = useState(false);
+  const [buscandoCep, setBuscandoCep] = useState(false);
+  const [erroCep, setErroCep] = useState("");
+  const requisicaoCep = useRef(null);
 
   const [idChat, setIdChat] = useState(null);
   const [idAjuda, setIdAjuda] = useState(null);
@@ -87,6 +116,11 @@ export default function Reportes({ somenteMeus = false }) {
 
   const [aviso, setAviso] = useState("");
   const [erroAcao, setErroAcao] = useState("");
+
+  useEffect(
+    () => () => requisicaoCep.current?.abort(),
+    [],
+  );
 
   const lista = filtrarReportes(somenteMeus ? meusRelatorios : relatorios, filtros);
   const reporteChat = relatorios.find((r) => r.id === idChat) ?? null;
@@ -98,6 +132,12 @@ export default function Reportes({ somenteMeus = false }) {
     setFiltros((atual) => ({ ...atual, [campo]: valor }));
 
   const alterarFormulario = (campo, valor) => {
+    if (campo === "cep") {
+      requisicaoCep.current?.abort();
+      requisicaoCep.current = null;
+      setBuscandoCep(false);
+      setErroCep("");
+    }
     setFormulario((atual) => ({ ...atual, [campo]: valor }));
     /* Some com o erro do campo assim que a pessoa começa a corrigir. */
     setErros((atual) => ({ ...atual, [campo]: "" }));
@@ -112,10 +152,18 @@ export default function Reportes({ somenteMeus = false }) {
   };
 
   const abrirEdicao = (reporte) => {
+    requisicaoCep.current?.abort();
+    requisicaoCep.current = null;
+    setBuscandoCep(false);
     setEditandoId(reporte.id);
     setFormulario({
       titulo: reporte.titulo,
-      localizacao: reporte.localizacao,
+      cep: reporte.cep ?? "",
+      rua: reporte.rua ?? "",
+      numero: reporte.numero ?? "",
+      cidade: reporte.cidade ?? "",
+      estado: reporte.estado ?? "",
+      localizacao: extrairReferencia(reporte),
       descricao: reporte.descricao,
       urgencia: reporte.urgencia,
       imagem: reporte.imagem,
@@ -127,13 +175,56 @@ export default function Reportes({ somenteMeus = false }) {
     setFormAberto(true);
   };
 
+  const fecharFormulario = () => {
+    requisicaoCep.current?.abort();
+    requisicaoCep.current = null;
+    setBuscandoCep(false);
+    setFormAberto(false);
+  };
+
+  const buscarCep = async (cepInformado) => {
+    requisicaoCep.current?.abort();
+    const controller = new AbortController();
+    requisicaoCep.current = controller;
+    setBuscandoCep(true);
+    setErroCep("");
+
+    try {
+      const endereco = await buscarEnderecoPorCep(cepInformado, {
+        signal: controller.signal,
+      });
+      setFormulario((atual) => ({
+        ...atual,
+        cep: endereco.cep,
+        rua: endereco.rua,
+        localizacao: endereco.bairro || atual.localizacao,
+        cidade: endereco.cidade,
+        estado: endereco.estado,
+      }));
+      setErros((atual) => ({ ...atual, localizacao: "" }));
+    } catch (problema) {
+      if (problema.name !== "AbortError" && requisicaoCep.current === controller) {
+        setErroCep(
+          problema.message || "Não foi possível consultar o CEP.",
+        );
+      }
+    } finally {
+      if (requisicaoCep.current === controller) {
+        requisicaoCep.current = null;
+        setBuscandoCep(false);
+      }
+    }
+  };
+
   /* Validação no front. O backend deve validar de novo — nunca confie
      só no que vem do navegador. */
   const validar = () => {
     const novos = {};
 
     if (!formulario.titulo.trim()) novos.titulo = "Informe um título.";
-    if (!formulario.localizacao.trim()) novos.localizacao = "Informe a localização.";
+    if (!formulario.localizacao.trim() && !formulario.rua.trim() && !formulario.cidade.trim()) {
+      novos.localizacao = "Informe um endereço ou ponto de referência.";
+    }
     if (!formulario.descricao.trim()) novos.descricao = "Descreva o problema.";
 
     setErros(novos);
@@ -147,11 +238,16 @@ export default function Reportes({ somenteMeus = false }) {
     setErroForm("");
 
     try {
+      const formularioComLocalizacao = {
+        ...formulario,
+        localizacao: montarLocalizacao(formulario),
+      };
+
       if (editandoId) {
-        await atualizar(editandoId, formulario);
+        await atualizar(editandoId, formularioComLocalizacao);
         setAviso("Reporte atualizado.");
       } else {
-        await criar(formulario);
+        await criar(formularioComLocalizacao);
         setAviso("Reporte cadastrado. Obrigado por ajudar!");
       }
 
@@ -298,11 +394,11 @@ export default function Reportes({ somenteMeus = false }) {
 
       <Modal
         aberto={formAberto}
-        onFechar={() => setFormAberto(false)}
+        onFechar={fecharFormulario}
         titulo={editandoId ? "Editar reporte" : "Reportar área poluída"}
         onConfirmar={salvar}
         rotuloConfirmar={editandoId ? "Salvar alterações" : "Enviar reporte"}
-        confirmando={salvando}
+        confirmando={salvando || buscandoCep}
         largura="680px"
       >
         <FormularioReporte
@@ -310,6 +406,9 @@ export default function Reportes({ somenteMeus = false }) {
           onAlterar={alterarFormulario}
           erros={erros}
           erroGeral={erroForm}
+          onBuscarCep={buscarCep}
+          buscandoCep={buscandoCep}
+          erroCep={erroCep}
         />
       </Modal>
 

@@ -11,6 +11,46 @@
   align-items: end;
 }
 
+.form-reporte__endereco {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-md);
+  min-width: 0;
+  margin: 0;
+  padding: var(--espaco-md);
+  border: 1px solid var(--borda-padrao);
+  border-radius: var(--raio-md);
+}
+
+.form-reporte__endereco-titulo {
+  padding-inline: var(--espaco-xs);
+  font-size: var(--texto-base);
+  font-weight: var(--peso-semi);
+}
+
+.form-reporte__endereco-ajuda {
+  margin-top: calc(-1 * var(--espaco-sm));
+  color: var(--texto-secundario);
+  font-size: var(--texto-sm);
+}
+
+.form-reporte__cep {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: var(--espaco-md);
+  align-items: end;
+}
+
+.form-reporte__spinner {
+  animation: form-reporte-girar 1s linear infinite;
+}
+
+@keyframes form-reporte-girar {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
 /* ---- Foto ---- */
 
 .form-reporte__foto {
@@ -76,4 +116,14 @@
   min-width: 180px;
   color: var(--texto-secundario);
   font-size: var(--texto-sm);
+}
+
+@media (max-width: 480px) {
+  .form-reporte__endereco {
+    padding: var(--espaco-sm);
+  }
+
+  .form-reporte__cep {
+    grid-template-columns: 1fr;
+  }
 }

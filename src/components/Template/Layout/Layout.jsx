@@ -14,6 +14,11 @@ export default function AppLayout({ children, onNovoReporte }) {
   const [drawerAberto, setDrawerAberto] = useState(false);
   const { usuario, estaLogado, sair } = useAuth();
   const navegar = useNavigate();
+  const menuVisivel = MENU.filter(({ caminho, privado }) => {
+    if (privado) return estaLogado;
+    if (caminho === CAMINHOS.login) return !estaLogado;
+    return true;
+  });
 
   const aoSair = () => {
     sair();
@@ -35,7 +40,7 @@ export default function AppLayout({ children, onNovoReporte }) {
   return (
     <div className="app-layout">
       <AppBar
-        menu={MENU}
+        menu={menuVisivel}
         usuario={usuario}
         estaLogado={estaLogado}
         caminhoHome={CAMINHOS.home}
