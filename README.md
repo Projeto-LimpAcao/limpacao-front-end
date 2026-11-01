@@ -39,6 +39,16 @@ do back-end. No desenvolvimento, as chamadas `/api` são encaminhadas para
 `VITE_API_URL` com a URL base da API, incluindo `/api` (por exemplo,
 `https://api.exemplo.com/api`).
 
+O chat autenticado usa STOMP sobre WebSocket no endpoint `/ws`, publica em
+`/app/chat/{relatorioId}` e recebe mensagens em `/topic/chat/{relatorioId}`.
+Em desenvolvimento, `/ws` também é encaminhado para `http://localhost:8080`;
+para outro servidor, defina `VITE_WS_URL` com a URL WebSocket completa. O
+histórico é carregado por `GET /api/chat/mensagens/relatorio/{relatorioId}` e as
+contagens por reporte por `GET /api/chat/mensagens/contagens`. As mensagens
+recebidas também atualizam a contagem em tempo real, e cada item exibe a data e
+o horário retornados pelo back-end. É possível responder a uma mensagem
+específica; a referência à mensagem respondida também é persistida.
+
 ---
 
 ## 🗂️ Estrutura

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { lerUsuarioSalvo } from "../services/authService";
 import * as relatoriosService from "../services/relatoriosService";
 
@@ -157,6 +157,7 @@ export function useRelatorios() {
               ...item,
               ...atualizado,
               mensagens: item.mensagens,
+              quantidadeMensagens: item.quantidadeMensagens,
               ofertas: item.ofertas,
               minhaParticipacao: item.minhaParticipacao,
             }
@@ -193,6 +194,42 @@ export function useRelatorios() {
 
     return encontrado;
   };
+
+  const registrarMensagemRecebida = useCallback((id, mensagem) => {
+    setRelatorios((atual) =>
+      atual.map((reporte) => {
+        if (reporte.id !== id) return reporte;
+        if ((reporte.mensagens ?? []).some((item) => item.id === mensagem.id)) {
+          return reporte;
+        }
+
+        const mensagens = [...(reporte.mensagens ?? []), mensagem];
+        return {
+          ...reporte,
+          mensagens,
+          quantidadeMensagens:
+            Math.max(
+              reporte.quantidadeMensagens ?? 0,
+              reporte.mensagens?.length ?? 0,
+            ) + 1,
+        };
+      }),
+    );
+  }, []);
+
+  const registrarHistoricoMensagens = useCallback((id, mensagens) => {
+    setRelatorios((atual) =>
+      atual.map((reporte) =>
+        reporte.id === id
+          ? {
+              ...reporte,
+              mensagens,
+              quantidadeMensagens: mensagens.length,
+            }
+          : reporte,
+      ),
+    );
+  }, []);
 
   const enviarMensagem = async (id, texto) => {
     if (!texto || !texto.trim()) {
@@ -249,7 +286,9 @@ export function useRelatorios() {
     alterarStatus,
     alternarParticipacao,
     carregarDetalhes,
+    registrarHistoricoMensagens,
     enviarMensagem,
+    registrarMensagemRecebida,
     enviarOferta,
   };
 }

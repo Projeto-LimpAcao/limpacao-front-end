@@ -13,6 +13,11 @@ export default function Modal({
   varianteConfirmar = "primario",
   confirmando = false,
   largura = "560px",
+  className = "",
+  iconeConfirmar,
+  iconeCancelar,
+  ariaLabelConfirmar,
+  ariaLabelCancelar,
 }) {
   useEffect(() => {
     if (!aberto) return;
@@ -35,7 +40,7 @@ export default function Modal({
   return (
     <div className="modal-fundo" onClick={onFechar}>
       <div
-        className="modal"
+        className={`modal ${className}`.trim()}
         style={{ maxWidth: largura }}
         role="dialog"
         aria-modal="true"
@@ -63,8 +68,11 @@ export default function Modal({
               onClick={onFechar}
               desabilitado={confirmando}
               larguraTotal
+              icone={iconeCancelar}
+              ariaLabel={ariaLabelCancelar}
+              title={ariaLabelCancelar}
             >
-              {rotuloCancelar}
+              {iconeCancelar ? null : rotuloCancelar}
             </Botao>
 
             <Botao
@@ -72,8 +80,15 @@ export default function Modal({
               onClick={onConfirmar}
               desabilitado={confirmando}
               larguraTotal
+              icone={iconeConfirmar}
+              ariaLabel={ariaLabelConfirmar}
+              title={ariaLabelConfirmar}
             >
-              {confirmando ? "Aguarde..." : rotuloConfirmar}
+              {iconeConfirmar
+                ? null
+                : confirmando
+                  ? "Aguarde..."
+                  : rotuloConfirmar}
             </Botao>
           </div>
         )}

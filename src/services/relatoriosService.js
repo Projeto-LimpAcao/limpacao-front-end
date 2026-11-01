@@ -1,4 +1,5 @@
 import { requisicaoApi } from "./api";
+import { listarContagensMensagens } from "./chatService";
 
 const URGENCIA_API = {
   baixa: "BAIXA",
@@ -42,7 +43,7 @@ async function validarResposta(resposta) {
   );
 }
 
-function mapearReporte(reporte, souDono = false) {
+function mapearReporte(reporte, souDono = false, quantidadeMensagens = 0) {
   return {
     ...reporte,
     urgencia: URGENCIA_TELA[reporte.urgencia] ?? "media",
@@ -52,6 +53,7 @@ function mapearReporte(reporte, souDono = false) {
     participantes: reporte.participantes ?? 0,
     ajudantes: reporte.ajudantes ?? 0,
     mensagens: [],
+    quantidadeMensagens,
     ofertas: [],
     souDono,
     minhaParticipacao: { ajudando: false, participando: false },
@@ -59,9 +61,10 @@ function mapearReporte(reporte, souDono = false) {
 }
 
 export async function listarReportes() {
-  const [respostaTodos, respostaMeus] = await Promise.all([
+  const [respostaTodos, respostaMeus, contagens] = await Promise.all([
     requisicaoApi("relatorios"),
     requisicaoApi("relatorios/meus"),
+    listarContagensMensagens(),
   ]);
   await Promise.all([
     validarResposta(respostaTodos),
@@ -75,7 +78,11 @@ export async function listarReportes() {
   const idsMeus = new Set(meus.map((reporte) => reporte.id));
 
   return todos.map((reporte) =>
-    mapearReporte(reporte, idsMeus.has(reporte.id)),
+    mapearReporte(
+      reporte,
+      idsMeus.has(reporte.id),
+      contagens[reporte.id] ?? 0,
+    ),
   );
 }
 

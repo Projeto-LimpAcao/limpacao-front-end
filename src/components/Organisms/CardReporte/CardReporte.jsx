@@ -95,7 +95,7 @@ export default function CardReporte({
                 {reporte.ajudantes} ajudando
               </span>
               <span className="card-reporte__contador">
-                {reporte.mensagens?.length ?? 0} mensagens
+                {reporte.quantidadeMensagens ?? reporte.mensagens?.length ?? 0} mensagens
               </span>
             </div>
           </div>

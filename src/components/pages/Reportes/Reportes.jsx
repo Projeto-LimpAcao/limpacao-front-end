@@ -96,7 +96,9 @@ export default function Reportes({ somenteMeus = false }) {
     alterarStatus,
     alternarParticipacao,
     carregarDetalhes,
+    registrarHistoricoMensagens,
     enviarMensagem,
+    registrarMensagemRecebida,
     enviarOferta,
   } = useRelatorios();
 
@@ -211,12 +213,14 @@ export default function Reportes({ somenteMeus = false }) {
         estado: endereco.estado,
       }));
       setErros((atual) => ({ ...atual, localizacao: "" }));
+      return true;
     } catch (problema) {
       if (problema.name !== "AbortError" && requisicaoCep.current === controller) {
         setErroCep(
           problema.message || "Não foi possível consultar o CEP.",
         );
       }
+      return false;
     } finally {
       if (requisicaoCep.current === controller) {
         requisicaoCep.current = null;
@@ -317,7 +321,6 @@ export default function Reportes({ somenteMeus = false }) {
     }
   };
 
-  /* As mensagens só são buscadas quando alguém abre o chat. */
   const abrirChat = (id) => {
     setIdChat(id);
     carregarDetalhes(id).catch(() => setErroAcao("Não foi possível carregar o chat."));
@@ -457,9 +460,13 @@ export default function Reportes({ somenteMeus = false }) {
 
       {reporteChat && (
         <ModalChat
+          key={`${reporteChat.id}-${Boolean(usuario)}`}
           reporte={reporteChat}
+          usuario={usuario}
           onFechar={() => setIdChat(null)}
           onEnviar={enviarMensagem}
+          onMensagemRecebida={registrarMensagemRecebida}
+          onHistoricoCarregado={registrarHistoricoMensagens}
         />
       )}
 
