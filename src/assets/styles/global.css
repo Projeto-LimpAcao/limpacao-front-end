@@ -48,6 +48,11 @@ textarea,
 select {
   font: inherit;
 }
+html,
+body {
+  overflow-x: hidden;
+}
+
 body {
   min-height: 100vh;
   background: var(--gradiente-pagina) var(--fundo-pagina) fixed;

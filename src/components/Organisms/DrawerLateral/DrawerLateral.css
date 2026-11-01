@@ -1,0 +1,116 @@
+.drawer {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 1100;
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-md);
+  width: min(300px, 85vw);
+  height: 100vh;
+  padding: var(--espaco-lg) var(--espaco-md);
+  background: var(--drawer-fundo);
+  color: var(--drawer-texto);
+  border-right: 1px solid var(--borda-padrao);
+  box-shadow: var(--sombra-lg);
+  transform: translateX(-110%);
+  transition: transform 250ms ease;
+  overflow-y: auto;
+}
+
+.drawer--aberto {
+  transform: translateX(0);
+}
+
+/* Camada escura atrás do menu */
+.drawer-fundo {
+  position: fixed;
+  inset: 0;
+  z-index: 1050;
+  background: rgba(15, 23, 42, 0.5);
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 250ms ease;
+}
+
+.drawer-fundo--visivel {
+  opacity: 1;
+  visibility: visible;
+}
+
+/* ---- Topo ---- */
+
+.drawer__topo {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--espaco-md);
+}
+
+.drawer__fechar {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  flex-shrink: 0;
+  border: none;
+  border-radius: var(--raio-total);
+  background: var(--superficie-suave);
+  color: inherit;
+  cursor: pointer;
+  transition: background var(--transicao);
+}
+
+.drawer__fechar:hover {
+  background: var(--borda-padrao);
+}
+
+.drawer__usuario {
+  padding-bottom: var(--espaco-md);
+  border-bottom: 1px solid var(--borda-padrao);
+  font-size: var(--texto-sm);
+  color: var(--texto-secundario);
+}
+
+/* ---- Lista de links ---- */
+
+.drawer__lista {
+  display: grid;
+  gap: var(--espaco-xs);
+}
+
+.drawer__link {
+  display: flex;
+  align-items: center;
+  gap: var(--espaco-sm);
+  padding: 12px var(--espaco-md);
+  border-radius: var(--raio-md);
+  color: var(--texto-secundario);
+  text-decoration: none;
+  font-weight: var(--peso-medio);
+  transition:
+    background var(--transicao),
+    color var(--transicao);
+}
+
+.drawer__link:hover,
+.drawer__link:focus-visible {
+  background: var(--drawer-hover);
+  color: var(--texto-principal);
+}
+
+.drawer__link--ativo {
+  background: var(--cor-primaria-clara);
+  color: var(--cor-primaria-escura);
+  font-weight: var(--peso-semi);
+}
+
+[data-tema="escuro"] .drawer__link--ativo {
+  color: var(--cor-primaria);
+}
+
+.drawer__icone {
+  display: inline-flex;
+  justify-content: center;
+  width: 1.5rem;
+}

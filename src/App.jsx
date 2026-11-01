@@ -1,12 +1,7 @@
-import './App.css'
-import InputComLabel from './components/moleculas/InputComLabel/InputComLabel'
+import Rotas from './rotas/Rotas';
 
 function App() {
-  return (
-    <>
-      <InputComLabel tipo='password' />
-    </>
-  )
+  return <Rotas />;
 }
 
-export default App
+export default App;

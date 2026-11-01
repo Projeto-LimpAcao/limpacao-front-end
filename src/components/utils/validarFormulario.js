@@ -16,3 +16,39 @@ export const telefoneValido = (telefone) => {
 
 export const senhasIguais = (senha, confirmacao) =>
   String(senha ?? "").length > 0 && senha === confirmacao;
+
+export const validarLogin = ({ email, senha }) => {
+  const erros = {};
+
+  if (!emailValido(email)) {
+    erros.email = "Digite um e-mail válido.";
+  }
+
+  if (String(senha ?? "").length < 6) {
+    erros.senha = "A senha precisa ter pelo menos 6 caracteres.";
+  }
+
+  return erros;
+};
+
+export const validarCadastro = ({ nome, email, senha, confirmarSenha }) => {
+  const erros = {};
+
+  if (!campoPreenchido(nome)) {
+    erros.nome = "Informe seu nome.";
+  }
+
+  if (!emailValido(email)) {
+    erros.email = "Digite um e-mail válido.";
+  }
+
+  if (String(senha ?? "").length < 6) {
+    erros.senha = "A senha precisa ter pelo menos 6 caracteres.";
+  }
+
+  if (String(senha ?? "") !== String(confirmarSenha ?? "")) {
+    erros.confirmarSenha = "As senhas não coincidem.";
+  }
+
+  return erros;
+};

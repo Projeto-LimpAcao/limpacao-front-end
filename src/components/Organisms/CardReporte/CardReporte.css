@@ -1,0 +1,228 @@
+.card-reporte {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow: hidden;
+  border: 1px solid var(--borda-padrao);
+  border-left: 4px solid var(--borda-padrao);
+  border-radius: var(--raio-lg);
+  background: var(--superficie);
+  box-shadow: var(--sombra-sm);
+  transition:
+    transform var(--transicao),
+    box-shadow var(--transicao);
+}
+
+.card-reporte:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--sombra-md);
+}
+
+/* A barra colorida da esquerda indica a urgência de longe. */
+.card-reporte--high {
+  border-left-color: var(--cor-perigo);
+}
+
+.card-reporte--medium {
+  border-left-color: var(--cor-aviso);
+}
+
+.card-reporte--low {
+  border-left-color: var(--cor-info);
+}
+
+/* ---- Foto ---- */
+
+.card-reporte__foto {
+  display: block;
+  width: 100%;
+  padding: 0;
+  border: none;
+  background: var(--superficie-suave);
+  cursor: zoom-in;
+  overflow: hidden;
+}
+
+.card-reporte__foto img {
+  width: 100%;
+  height: 180px;
+  object-fit: cover;
+  transition: transform 400ms ease;
+}
+
+.card-reporte__foto:hover img {
+  transform: scale(1.05);
+}
+
+.card-reporte__foto-grande {
+  width: 100%;
+  max-height: 70vh;
+  object-fit: contain;
+  border-radius: var(--raio-md);
+}
+
+/* ---- Corpo ---- */
+
+.card-reporte__corpo {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-sm);
+  flex: 1;
+  padding: var(--espaco-lg);
+}
+
+.card-reporte__etiquetas {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--espaco-sm);
+  flex-wrap: wrap;
+}
+
+.card-reporte__titulo {
+  font-size: var(--texto-lg);
+  font-weight: var(--peso-negrito);
+}
+
+.card-reporte__local {
+  display: flex;
+  align-items: center;
+  gap: var(--espaco-xs);
+  color: var(--texto-secundario);
+  font-size: var(--texto-sm);
+}
+
+.card-reporte__local svg {
+  flex-shrink: 0;
+  color: var(--cor-primaria);
+}
+
+.card-reporte__descricao {
+  color: var(--texto-secundario);
+  font-size: var(--texto-sm);
+  line-height: var(--altura-linha-solta);
+}
+
+/* ---- Rodapé com autor e contadores ---- */
+
+.card-reporte__rodape {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: var(--espaco-md);
+  flex-wrap: wrap;
+  /* Empurra este bloco pro fim do card, igualando a altura de todos. */
+  margin-top: auto;
+  padding-top: var(--espaco-md);
+  border-top: 1px solid var(--borda-padrao);
+}
+
+.card-reporte__autor {
+  display: flex;
+  flex-direction: column;
+  font-size: var(--texto-xs);
+}
+
+.card-reporte__autor strong {
+  color: var(--texto-principal);
+}
+
+.card-reporte__autor span {
+  color: var(--texto-secundario);
+}
+
+.card-reporte__contadores {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: var(--espaco-xs);
+}
+
+.card-reporte__contador {
+  padding: 2px 10px;
+  border-radius: var(--raio-total);
+  background: var(--superficie-suave);
+  color: var(--texto-secundario);
+  font-size: var(--texto-xs);
+  white-space: nowrap;
+}
+
+/* ---- Botões de interação ---- */
+
+.card-reporte__acoes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--espaco-md);
+  padding-top: var(--espaco-md);
+  border-top: 1px solid var(--borda-padrao);
+}
+
+.card-reporte__acao {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--espaco-xs);
+  border: none;
+  background: none;
+  padding: 0;
+  color: var(--cor-info);
+  font-family: inherit;
+  font-size: var(--texto-sm);
+  font-weight: var(--peso-medio);
+  cursor: pointer;
+}
+
+.card-reporte__acao:hover {
+  text-decoration: underline;
+}
+
+.card-reporte__acao--ativa {
+  color: var(--cor-primaria);
+  font-weight: var(--peso-semi);
+}
+
+/* ---- Área do dono ---- */
+
+.card-reporte__dono {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--espaco-md);
+  padding-top: var(--espaco-md);
+  border-top: 1px solid var(--borda-padrao);
+}
+
+.card-reporte__dono-botoes {
+  display: flex;
+  gap: var(--espaco-xs);
+}
+
+.card-reporte__icone {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border: 1px solid var(--borda-padrao);
+  border-radius: var(--raio-sm);
+  background: var(--superficie);
+  color: var(--texto-secundario);
+  cursor: pointer;
+  transition:
+    color var(--transicao),
+    border-color var(--transicao);
+}
+
+.card-reporte__icone:hover {
+  color: var(--cor-primaria);
+  border-color: var(--cor-primaria);
+}
+
+.card-reporte__icone--perigo:hover {
+  color: var(--cor-perigo);
+  border-color: var(--cor-perigo);
+}
+
+/* O select de status não precisa ocupar a linha toda. */
+.card-reporte__dono .select-container {
+  width: auto;
+  min-width: 150px;
+}

@@ -1,0 +1,53 @@
+.perfil {
+  max-width: 780px;
+  margin-inline: auto;
+  padding-block: var(--espaco-2xl);
+}
+
+.perfil__cabecalho {
+  display: flex;
+  align-items: center;
+  gap: var(--espaco-md);
+  padding-bottom: var(--espaco-lg);
+  border-bottom: 1px solid var(--borda-padrao);
+}
+
+.perfil__nome {
+  font-size: var(--texto-xl);
+  font-weight: var(--peso-negrito);
+}
+
+.perfil__email {
+  color: var(--texto-secundario);
+  font-size: var(--texto-sm);
+}
+
+.perfil__campo {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-xs);
+  padding: var(--espaco-lg);
+  border: 1px solid var(--borda-padrao);
+  border-radius: var(--raio-lg);
+  background: var(--superficie);
+}
+
+.perfil__campo-label {
+  display: flex;
+  align-items: center;
+  gap: var(--espaco-xs);
+  color: var(--texto-secundario);
+  font-size: var(--texto-sm);
+}
+
+.perfil__campo-valor {
+  font-size: var(--texto-lg);
+  font-weight: var(--peso-semi);
+  word-break: break-word;
+}
+
+.perfil__acoes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--espaco-md);
+}
