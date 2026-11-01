@@ -19,6 +19,7 @@ export default function Textarea({
   name,
   value,
   onChange,
+  onKeyDown,
   placeholder = "",
   linhas = 4,
   desabilitado = false,
@@ -43,6 +44,7 @@ export default function Textarea({
         name={name}
         value={value}
         onChange={onChange}
+        onKeyDown={onKeyDown}
         placeholder={placeholder}
         rows={linhas}
         disabled={desabilitado}

@@ -22,11 +22,17 @@ export default function FormularioReporte({
   erroCep = "",
 }) {
   const entradaArquivo = useRef(null);
+  const campoNumero = useRef(null);
 
   const alterarCep = (evento) => {
     const digitos = evento.target.value.replace(/\D/g, "").slice(0, 8);
     const cep = digitos.replace(/^(\d{5})(\d)/, "$1-$2");
     onAlterar("cep", cep);
+  };
+
+  const buscarEndereco = async () => {
+    const encontrado = await onBuscarCep(formulario.cep);
+    if (encontrado) campoNumero.current?.focus();
   };
 
   return (
@@ -70,7 +76,7 @@ export default function FormularioReporte({
                 <Search size={16} />
               )
             }
-            onClick={() => onBuscarCep(formulario.cep)}
+            onClick={() => void buscarEndereco()}
             desabilitado={
               buscandoCep || formulario.cep.replace(/\D/g, "").length !== 8
             }
@@ -92,6 +98,7 @@ export default function FormularioReporte({
             placeholder="Ex: 123 ou S/N"
             value={formulario.numero}
             onChange={(evento) => onAlterar("numero", evento.target.value)}
+            inputRef={campoNumero}
           />
         </div>
 

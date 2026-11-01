@@ -15,6 +15,7 @@ export default function InputTexto({
   label,
   obrigatorio = false,
   icone,
+  inputRef,
 }) {
   const idGerado = useId();
   const inputId = id ?? idGerado;
@@ -39,6 +40,7 @@ export default function InputTexto({
           type={type}
           id={inputId}
           name={name}
+          ref={inputRef}
           value={value}
           onChange={onChange}
           placeholder={placeholder}
