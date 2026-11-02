@@ -90,6 +90,91 @@
   white-space: nowrap;
 }
 
+.appbar__acoes > .botao--secundario,
+.appbar__acoes > .botao--secundario:hover:not(:disabled) {
+  color: var(--cor-primaria);
+}
+
+:root:not([data-tema="escuro"]) .appbar__acoes > .botao--secundario {
+  background: var(--cor-primaria-clara);
+  border: 1px solid
+    color-mix(in srgb, var(--cor-primaria) 24%, var(--superficie));
+}
+
+:root:not([data-tema="escuro"])
+  .appbar__acoes
+  > .botao--secundario:hover:not(:disabled) {
+  background: color-mix(
+    in srgb,
+    var(--cor-primaria) 18%,
+    var(--superficie)
+  );
+}
+
+[data-tema="escuro"] .appbar__acoes > .botao--secundario,
+[data-tema="escuro"]
+  .appbar__acoes
+  > .botao--secundario:hover:not(:disabled) {
+  color: var(--botao-primario-fundo);
+}
+
+[data-tema="escuro"] .appbar__acoes > .botao--secundario {
+  background: color-mix(in srgb, var(--botao-secundario-fundo) 75%, white);
+  border: 1px solid color-mix(in srgb, var(--borda-padrao) 55%, white);
+  color: color-mix(in srgb, var(--cor-primaria) 25%, white);
+}
+
+[data-tema="escuro"]
+  .appbar__acoes
+  > .botao--secundario:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--botao-secundario-fundo) 65%, white);
+  color: color-mix(in srgb, var(--cor-primaria) 25%, white);
+}
+
+[data-tema="escuro"][data-paleta="preto"]
+  .appbar__acoes
+  > .botao--secundario,
+[data-tema="escuro"][data-paleta="preto"]
+  .appbar__acoes
+  > .botao--secundario:hover:not(:disabled) {
+  color: #ffffff;
+}
+
+[data-tema="escuro"][data-paleta="preto"] .appbar__acoes > .botao--secundario {
+  background: #525252;
+  border-color: #a3a3a3;
+}
+
+[data-tema="escuro"][data-paleta="preto"]
+  .appbar__acoes
+  > .botao--secundario:hover:not(:disabled) {
+  background: #666666;
+}
+
+[data-tema="escuro"] .appbar__aba {
+  color: var(--neutro-200);
+}
+
+[data-tema="escuro"] .appbar__aba:hover {
+  color: var(--texto-principal);
+}
+
+[data-tema="escuro"] .appbar__aba--ativa,
+[data-tema="escuro"] .appbar__aba--ativa:hover {
+  background: var(--botao-primario-fundo);
+  color: var(--botao-primario-texto);
+}
+
+[data-tema="escuro"][data-paleta="preto"] .appbar__aba--ativa,
+[data-tema="escuro"][data-paleta="preto"] .appbar__aba--ativa:hover {
+  background: #666666;
+  color: #ffffff;
+}
+
+[data-tema="escuro"] .appbar__saudacao {
+  color: var(--neutro-200);
+}
+
 /* ---- Telas médias: esconde a saudação ---- */
 
 @media (max-width: 1100px) {

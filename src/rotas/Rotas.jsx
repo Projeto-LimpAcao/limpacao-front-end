@@ -1,8 +1,9 @@
-import React from "react";
-import { Navigate, Route, Routes } from "react-router-dom";
+import { useEffect } from "react";
+import { Navigate, Route, Routes, useLocation } from "react-router-dom";
 
 import Login from "../components/pages/Login/Login";
 import Perfil from "../components/pages/Perfil/Perfil";
+import Inicio from "../components/pages/Inicio/Inicio";
 import Reportes from "../components/pages/Reportes/Reportes";
 import Trabalhos from "../components/pages/Trabalhos/Trabalhos";
 import { useAuth } from "../hooks";
@@ -18,9 +19,15 @@ function RotaPrivada({ children }) {
 }
 
 export default function Rotas() {
+  const { pathname } = useLocation();
+
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [pathname]);
+
   return (
     <Routes>
-      <Route path="/" element={<Trabalhos />} />
+      <Route path="/" element={<Inicio />} />
       <Route path="/login" element={<Login />} />
       <Route path="/trabalhos" element={<Trabalhos />} />
       <Route path="/reportes" element={<Reportes />} />

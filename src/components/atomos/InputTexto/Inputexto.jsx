@@ -16,6 +16,7 @@ export default function InputTexto({
   obrigatorio = false,
   icone,
   inputRef,
+  autoComplete,
 }) {
   const idGerado = useId();
   const inputId = id ?? idGerado;
@@ -44,6 +45,7 @@ export default function InputTexto({
           value={value}
           onChange={onChange}
           placeholder={placeholder}
+          autoComplete={autoComplete}
           disabled={desabilitado}
           aria-invalid={erro || undefined}
           className={`input input--${tamanho} ${erro ? "input--erro" : ""}`}

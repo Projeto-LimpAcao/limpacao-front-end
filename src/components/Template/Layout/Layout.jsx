@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import "./AppLayout.css";
 import AppBar from "../../Organisms/AppBar/AppBar";
 import Footer from "../../Organisms/Footer/Footer";
+import ScrollTop from "../../Organisms/ScrollTop/ScrollTop";
 import Modal from "../../moleculas/Modal/Modal";
 import { MENU } from "../../../config/projeto";
 import { useAuth } from "../../../hooks";
@@ -21,17 +22,30 @@ export default function AppLayout({ children, onNovoReporte }) {
   });
 
   const aoSair = () => {
+    navegar(CAMINHOS.reportes, { replace: true });
     sair();
-    navegar(CAMINHOS.login, { replace: true });
   };
 
   const aoReportar = () => {
     if (!estaLogado) {
-      navegar(CAMINHOS.login, { replace: true });
+      navegar(CAMINHOS.login, {
+        replace: true,
+        state: {
+          de: CAMINHOS.reportes,
+          estadoDestino: { abrirFormularioReporte: true },
+        },
+      });
       return;
     }
 
-    onNovoReporte?.();
+    if (onNovoReporte) {
+      onNovoReporte();
+      return;
+    }
+
+    navegar(CAMINHOS.reportes, {
+      state: { abrirFormularioReporte: true },
+    });
   };
 
   const aoAbrirMenu = () => setDrawerAberto(true);
@@ -54,6 +68,7 @@ export default function AppLayout({ children, onNovoReporte }) {
       <main className="app-layout__conteudo">{children}</main>
 
       <Footer onSobreClick={() => setSobreAberto(true)} />
+      <ScrollTop />
 
       <Modal
         aberto={sobreAberto}
@@ -64,14 +79,15 @@ export default function AppLayout({ children, onNovoReporte }) {
         rotuloCancelar="Voltar"
       >
         <p>
-          O LimpAção é um projeto dedicado a mapear e reportar áreas poluídas em
-          Florianópolis, reunindo informações da própria comunidade para
-          promover ações ambientais.
+          O LimpAção é uma plataforma para comunidades identificarem e
+          acompanharem problemas ambientais em espaços públicos e áreas
+          naturais, reunindo informações locais para promover ações
+          colaborativas.
         </p>
         <p>
-          O objetivo é facilitar a comunicação entre moradores e responsáveis
-          pela limpeza urbana, com dados claros e acessíveis sobre o que
-          precisa de atenção na cidade.
+          O objetivo é conectar moradores, organizações e serviços responsáveis
+          pela preservação e limpeza dos espaços, com informações claras sobre
+          as necessidades de cada comunidade.
         </p>
       </Modal>
     </div>

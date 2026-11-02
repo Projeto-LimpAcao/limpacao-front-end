@@ -47,19 +47,28 @@
   line-height: var(--altura-linha-solta);
 }
 
-/* ---- Caixa da taxa de resolução ---- */
+/* ---- Caixas das taxas de resolução ---- */
+
+.painel-stats__taxas {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--espaco-md);
+}
 
 .painel-stats__taxa {
+  flex: 1 1 200px;
   padding: var(--espaco-md) var(--espaco-lg);
-  border: 1px solid rgba(255, 255, 255, 0.25);
+  border: 1px solid rgba(255, 255, 255, 0.34);
   border-radius: var(--raio-lg);
-  background: rgba(255, 255, 255, 0.12);
-  min-width: 200px;
+  background: color-mix(in srgb, var(--cor-primaria-escura) 42%, transparent);
+  min-width: min(200px, 100%);
 }
 
 .painel-stats__taxa-label {
+  min-height: calc(var(--texto-sm) * var(--altura-linha-normal) * 2);
   font-size: var(--texto-sm);
-  opacity: 0.9;
+  line-height: var(--altura-linha-normal);
+  opacity: 1;
 }
 
 .painel-stats__taxa-valor {
@@ -74,7 +83,7 @@
   margin-top: var(--espaco-sm);
   height: 8px;
   border-radius: var(--raio-total);
-  background: rgba(255, 255, 255, 0.25);
+  background: rgba(255, 255, 255, 0.34);
   overflow: hidden;
 }
 
@@ -103,6 +112,7 @@
     padding-inline: var(--espaco-md);
   }
 
+  .painel-stats__taxas,
   .painel-stats__taxa {
     width: 100%;
   }

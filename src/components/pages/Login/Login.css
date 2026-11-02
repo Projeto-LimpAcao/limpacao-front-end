@@ -4,7 +4,7 @@
   align-items: center;
   justify-content: center;
   gap: var(--espaco-lg);
-  min-height: 100vh;
+  min-height: calc(100vh - 68px);
   padding: var(--espaco-xl) var(--espaco-md);
 }
 
@@ -72,9 +72,13 @@
   display: grid;
   place-items: center;
   border-radius: var(--raio-lg);
-  background: linear-gradient(140deg, var(--verde-claro) 0%, #16a34a 100%);
+  background: linear-gradient(
+    140deg,
+    var(--verde-claro) 0%,
+    var(--cor-primaria) 100%
+  );
   color: #ffffff;
-  box-shadow: 0 8px 20px rgba(22, 163, 74, 0.3);
+  box-shadow: 0 8px 20px color-mix(in srgb, var(--cor-primaria) 30%, transparent);
 }
 
 .login__escudo--painel {
@@ -241,6 +245,10 @@
 }
 
 @media (max-width: 560px) {
+  .login {
+    min-height: calc(100vh - 60px);
+  }
+
   .login {
     justify-content: flex-start;
     padding: 0;

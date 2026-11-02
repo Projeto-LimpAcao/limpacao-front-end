@@ -7,6 +7,13 @@
 
 .reportes__cabecalho {
   display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--espaco-md);
+}
+
+.reportes__cabecalho-texto {
+  display: flex;
   flex-direction: column;
   gap: var(--espaco-xs);
 }
@@ -35,5 +42,18 @@
 @media (max-width: 480px) {
   .reportes__confirmacao {
     flex-direction: column-reverse;
+  }
+}
+
+@media (max-width: 640px) {
+  .reportes__cabecalho {
+    align-items: stretch;
+    flex-direction: column;
+  }
+}
+
+@media (max-width: 640px) {
+  .reportes .grid {
+    grid-template-columns: minmax(0, 1fr);
   }
 }
