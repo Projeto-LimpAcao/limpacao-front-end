@@ -119,6 +119,15 @@
 .chat__mensagem--minha {
   align-self: flex-end;
   background: #e8f5e9;
+  color: #1e293b;
+}
+
+.chat__mensagem--minha .chat__mensagem-topo {
+  color: #475569;
+}
+
+.chat__mensagem--minha .chat__mensagem-topo strong {
+  color: #0f172a;
 }
 
 .chat__mensagem-topo {

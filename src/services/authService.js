@@ -69,3 +69,7 @@ export function sair() {
   localStorage.removeItem(STORAGE_KEY);
   localStorage.removeItem(TOKEN_KEY);
 }
+
+export function atualizarUsuarioSalvo(usuario) {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(usuario));
+}

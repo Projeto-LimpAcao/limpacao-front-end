@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
+import { ArrowLeft } from "lucide-react";
 
 import "./Reportes.css";
 import {
@@ -42,9 +43,9 @@ const FORMULARIO_VAZIO = {
   estado: "",
   localizacao: "",
   descricao: "",
-  urgencia: "medium",
-  imagem: "",
-  multirao: false,
+  urgencia: "",
+  imagens: [],
+  multirao: null,
 };
 
 function montarEndereco(formulario) {
@@ -81,8 +82,9 @@ function extrairReferencia(reporte) {
 }
 
 export default function Reportes({ somenteMeus = false }) {
-  const { usuario } = useAuth();
+  const { usuario, sair } = useAuth();
   const navegar = useNavigate();
+  const local = useLocation();
 
   const {
     relatorios,
@@ -100,7 +102,7 @@ export default function Reportes({ somenteMeus = false }) {
     enviarMensagem,
     registrarMensagemRecebida,
     enviarOferta,
-  } = useRelatorios();
+  } = useRelatorios(Boolean(usuario), somenteMeus);
 
 
   const [filtros, setFiltros] = useState({
@@ -110,7 +112,9 @@ export default function Reportes({ somenteMeus = false }) {
     ordenacao: "recentes",
   });
 
-  const [formAberto, setFormAberto] = useState(false);
+  const [formAberto, setFormAberto] = useState(
+    () => Boolean(usuario && local.state?.abrirFormularioReporte),
+  );
   const [editandoId, setEditandoId] = useState(null);
   const [formulario, setFormulario] = useState(FORMULARIO_VAZIO);
   const [erros, setErros] = useState({});
@@ -133,11 +137,23 @@ export default function Reportes({ somenteMeus = false }) {
     [],
   );
 
+  useEffect(() => {
+    if (!somenteMeus || !usuario || !erro.includes("Sua sessão expirou")) return;
+    sair();
+    navegar(CAMINHOS.login, { replace: true });
+  }, [erro, navegar, sair, somenteMeus, usuario]);
+
   const lista = filtrarReportes(somenteMeus ? meusRelatorios : relatorios, filtros);
   const reporteChat = relatorios.find((r) => r.id === idChat) ?? null;
   const reporteAjuda = relatorios.find((r) => r.id === idAjuda) ?? null;
 
   /* ---------------- 2. Ações ---------------- */
+
+  const exigirLogin = () => {
+    if (usuario) return true;
+    navegar(CAMINHOS.login);
+    return false;
+  };
 
   const alterarFiltro = (campo, valor) =>
     setFiltros((atual) => ({ ...atual, [campo]: valor }));
@@ -155,6 +171,7 @@ export default function Reportes({ somenteMeus = false }) {
   };
 
   const abrirNovo = () => {
+    if (!exigirLogin()) return;
     setEditandoId(null);
     setFormulario(FORMULARIO_VAZIO);
     setErros({});
@@ -162,7 +179,13 @@ export default function Reportes({ somenteMeus = false }) {
     setFormAberto(true);
   };
 
+  useEffect(() => {
+    if (!local.state?.abrirFormularioReporte) return;
+    navegar(local.pathname, { replace: true, state: null });
+  }, [local.pathname, local.state, navegar]);
+
   const abrirEdicao = (reporte) => {
+    if (!exigirLogin()) return;
     requisicaoCep.current?.abort();
     requisicaoCep.current = null;
     setBuscandoCep(false);
@@ -177,7 +200,7 @@ export default function Reportes({ somenteMeus = false }) {
       localizacao: extrairReferencia(reporte),
       descricao: reporte.descricao,
       urgencia: reporte.urgencia,
-      imagem: reporte.imagem,
+      imagens: reporte.imagens,
       multirao: reporte.multirao,
       status: reporte.status,
     });
@@ -212,7 +235,14 @@ export default function Reportes({ somenteMeus = false }) {
         cidade: endereco.cidade,
         estado: endereco.estado,
       }));
-      setErros((atual) => ({ ...atual, localizacao: "" }));
+      setErros((atual) => ({
+        ...atual,
+        cep: "",
+        rua: "",
+        cidade: "",
+        estado: "",
+        localizacao: endereco.bairro ? "" : atual.localizacao,
+      }));
       return true;
     } catch (problema) {
       if (problema.name !== "AbortError" && requisicaoCep.current === controller) {
@@ -230,34 +260,63 @@ export default function Reportes({ somenteMeus = false }) {
   };
 
   const selecionarImagem = async (evento) => {
-    const arquivo = evento.target.files?.[0];
+    const arquivos = Array.from(evento.target.files ?? []);
     evento.target.value = "";
-    if (!arquivo) return;
+    if (arquivos.length === 0) return;
 
-    if (!TIPOS_IMAGEM_SUPORTADOS.includes(arquivo.type)) {
-      setErroForm("Use uma imagem nos formatos JPEG, PNG, GIF ou WebP.");
-      return;
-    }
+    const imagensAtuais = formulario.imagens ?? [];
+    const espacoDisponivel = 5 - imagensAtuais.length;
+    const imagensValidas = [];
+    const errosArquivo = [];
 
-    if (arquivo.size > TAMANHO_MAXIMO_IMAGEM) {
-      setErroForm("A imagem deve ter no máximo 5 MB.");
+    arquivos.forEach((arquivo) => {
+      if (!TIPOS_IMAGEM_SUPORTADOS.includes(arquivo.type)) {
+        errosArquivo.push(`${arquivo.name}: formato não suportado.`);
+      } else if (arquivo.size > TAMANHO_MAXIMO_IMAGEM) {
+        errosArquivo.push(`${arquivo.name}: tamanho máximo de 5 MB.`);
+      } else if (imagensValidas.length < espacoDisponivel) {
+        imagensValidas.push(arquivo);
+      } else {
+        errosArquivo.push("Cada reporte pode ter no máximo 5 imagens.");
+      }
+    });
+
+    if (imagensValidas.length === 0) {
+      setErroForm(errosArquivo.join(" "));
       return;
     }
 
     setErroForm("");
     try {
-      const imagem = await lerImagemComoTexto(arquivo);
-      if (typeof imagem !== "string") {
-        throw new Error("Não foi possível converter a imagem.");
+      const imagens = await Promise.all(
+        imagensValidas.map((arquivo) => lerImagemComoTexto(arquivo)),
+      );
+      if (imagens.some((imagem) => typeof imagem !== "string")) {
+        throw new Error("Não foi possível converter uma das imagens.");
       }
-      setFormulario((atual) => ({ ...atual, imagem }));
+      setFormulario((atual) => ({
+        ...atual,
+        imagens: [...(atual.imagens ?? []), ...imagens],
+      }));
+      setErros((atual) => ({ ...atual, imagens: "" }));
+      if (errosArquivo.length > 0) setErroForm(errosArquivo.join(" "));
     } catch (problema) {
       setErroForm(problema.message);
     }
   };
 
-  const removerImagem = () => {
-    setFormulario((atual) => ({ ...atual, imagem: "" }));
+  const removerImagem = (indice) => {
+    setFormulario((atual) => ({
+      ...atual,
+      imagens: (atual.imagens ?? []).filter((_, atualIndice) => atualIndice !== indice),
+    }));
+    setErros((atual) => ({
+      ...atual,
+      imagens:
+        (formulario.imagens?.length ?? 0) <= 1
+          ? "Adicione pelo menos uma imagem."
+          : "",
+    }));
     setErroForm("");
   };
 
@@ -267,10 +326,24 @@ export default function Reportes({ somenteMeus = false }) {
     const novos = {};
 
     if (!formulario.titulo.trim()) novos.titulo = "Informe um título.";
-    if (!formulario.localizacao.trim() && !formulario.rua.trim() && !formulario.cidade.trim()) {
-      novos.localizacao = "Informe um endereço ou ponto de referência.";
+    if (formulario.cep.replace(/\D/g, "").length !== 8) {
+      novos.cep = "Informe um CEP válido com 8 dígitos.";
+    }
+    if (!formulario.rua.trim()) novos.rua = "Informe a rua.";
+    if (!formulario.numero.trim()) novos.numero = "Informe o número ou S/N.";
+    if (!formulario.cidade.trim()) novos.cidade = "Informe a cidade.";
+    if (!formulario.estado.trim()) novos.estado = "Informe o estado.";
+    if (!formulario.localizacao.trim()) {
+      novos.localizacao = "Informe o bairro ou ponto de referência.";
     }
     if (!formulario.descricao.trim()) novos.descricao = "Descreva o problema.";
+    if (!formulario.urgencia) novos.urgencia = "Selecione a urgência.";
+    if (formulario.multirao == null) {
+      novos.multirao = "Selecione Sim ou Não para a organização do mutirão.";
+    }
+    if ((formulario.imagens?.length ?? 0) === 0) {
+      novos.imagens = "Adicione pelo menos uma imagem.";
+    }
 
     setErros(novos);
     return Object.keys(novos).length === 0;
@@ -307,6 +380,7 @@ export default function Reportes({ somenteMeus = false }) {
   };
 
   const confirmarExclusao = async () => {
+    if (!exigirLogin()) return;
     setExcluindo(true);
     setErroAcao("");
 
@@ -322,12 +396,14 @@ export default function Reportes({ somenteMeus = false }) {
   };
 
   const abrirChat = (id) => {
+    if (!exigirLogin()) return;
     setIdChat(id);
     carregarDetalhes(id).catch(() => setErroAcao("Não foi possível carregar o chat."));
   };
 
   /* Se já estou ajudando, o clique desfaz. Se não, abre o formulário. */
   const aoClicarAjudar = (reporte) => {
+    if (!exigirLogin()) return;
     if (reporte.minhaParticipacao.ajudando) {
       alternarParticipacao(reporte.id, "ajudando");
       return;
@@ -337,6 +413,7 @@ export default function Reportes({ somenteMeus = false }) {
   };
 
   const mudarStatus = async (reporte, novoStatus) => {
+    if (!exigirLogin()) return;
     setErroAcao("");
 
     try {
@@ -352,30 +429,39 @@ export default function Reportes({ somenteMeus = false }) {
     <AppLayout onNovoReporte={abrirNovo}>
       <PainelEstatisticas
         estatisticas={estatisticas}
-        filtroAtivo={somenteMeus ? null : filtros.status}
-        onFiltrar={
-          somenteMeus ? undefined : (valor) => alterarFiltro("status", valor)
-        }
+        filtroAtivo={filtros.status}
+        meusAtivo={somenteMeus}
+        onFiltrar={(valor) => alterarFiltro("status", valor)}
         onVerMeus={() => navegar(CAMINHOS.meusReportes)}
       />
 
       <Container>
         <div className="reportes">
           <header className="reportes__cabecalho">
-            <h2 className="reportes__titulo">
-              {somenteMeus ? "Meus reportes" : "Reportes da comunidade"}
-            </h2>
-            <p className="reportes__descricao">
-              {somenteMeus
-                ? `Olá, ${usuario.nome}. Aqui estão os reportes que você criou — dá pra editar, mudar o status e excluir.`
-                : "Veja o que a comunidade está reportando pela cidade e ofereça ajuda."}
-            </p>
+            <div className="reportes__cabecalho-texto">
+              <h2 className="reportes__titulo">
+                {somenteMeus ? "Meus reportes" : "Reportes da comunidade"}
+              </h2>
+              <p className="reportes__descricao">
+                {somenteMeus
+                  ? `Olá, ${usuario.nome}. Aqui estão os reportes que você criou — dá pra editar, mudar o status e excluir.`
+                  : "Veja os problemas ambientais reportados pelas comunidades e ofereça ajuda."}
+              </p>
+            </div>
+            {somenteMeus && (
+              <Botao
+                variante="secundario"
+                icone={<ArrowLeft size={18} />}
+                onClick={() => navegar(CAMINHOS.reportes)}
+              >
+                Reportes da comunidade
+              </Botao>
+            )}
           </header>
 
           <PainelFiltros
             filtros={filtros}
             onAlterar={alterarFiltro}
-            mostrarStatus={!somenteMeus}
           />
 
           <Alerta tipo="sucesso" onFechar={() => setAviso("")}>
@@ -400,7 +486,7 @@ export default function Reportes({ somenteMeus = false }) {
               }
               descricao={
                 somenteMeus
-                  ? "Encontrou um problema na cidade? Cadastre o primeiro e mobilize a comunidade."
+                  ? "Encontrou um problema na sua região? Cadastre o primeiro e mobilize a comunidade."
                   : "Ajuste os filtros ou seja a primeira pessoa a reportar."
               }
               rotuloAcao="Criar um reporte"
@@ -413,13 +499,16 @@ export default function Reportes({ somenteMeus = false }) {
                   <CardReporte
                     key={reporte.id}
                     reporte={reporte}
+                    estaLogado={Boolean(usuario)}
                     onEditar={() => abrirEdicao(reporte)}
                     onExcluir={() => setParaExcluir(reporte)}
                     onAbrirChat={() => abrirChat(reporte.id)}
                     onAjudar={() => aoClicarAjudar(reporte)}
-                    onParticipar={() =>
-                      alternarParticipacao(reporte.id, "participando")
-                    }
+                    onParticipar={() => {
+                      if (exigirLogin()) {
+                        alternarParticipacao(reporte.id, "participando");
+                      }
+                    }}
                     onMudarStatus={(novo) => mudarStatus(reporte, novo)}
                   />
                 ))}

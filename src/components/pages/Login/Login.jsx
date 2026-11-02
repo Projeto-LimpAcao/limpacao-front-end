@@ -3,6 +3,7 @@ import { Navigate, useLocation, useNavigate } from "react-router-dom";
 import { ShieldCheck, Eye, EyeOff } from "lucide-react";
 
 import "./Login.css";
+import { AppLayout } from "../../index";
 import Botao from "../../atomos/Botao/Botao";
 import InputTexto from "../../atomos/InputTexto/Inputexto";
 import Stack from "../../atomos/Stack/Stack";
@@ -80,7 +81,10 @@ export default function Login() {
       } else {
         await entrar(formulario.email, formulario.senha);
       }
-      navegar(destino, { replace: true });
+      navegar(destino, {
+        replace: true,
+        state: local.state?.estadoDestino,
+      });
     } catch (problema) {
       setErroGeral(problema.message);
     } finally {
@@ -89,8 +93,9 @@ export default function Login() {
   };
 
   return (
-    <div className="login">
-      <div className="login__shell">
+    <AppLayout>
+      <div className="login">
+        <div className="login__shell">
         <aside className="login__painel" aria-label="Resumo do projeto">
           <div className="login__painel-topo">
             <span className="login__escudo login__escudo--painel">
@@ -106,7 +111,7 @@ export default function Login() {
             </h1>
             <p className="login__descricao">
               Acompanhe reportes, indicadores e ações de limpeza para manter a
-              cidade mais segura, saudável e colaborativa.
+              sua comunidade mais limpa, saudável e colaborativa.
             </p>
           </div>
 
@@ -258,11 +263,12 @@ export default function Login() {
             </Stack>
           </form>
         </div>
-      </div>
+        </div>
 
-      <p className="login__rodape">
-        Juntos por uma cidade mais limpa e sustentável 🌱
-      </p>
-    </div>
+        <p className="login__rodape">
+          Juntos por comunidades mais limpas e sustentáveis 🌱
+        </p>
+      </div>
+    </AppLayout>
   );
 }

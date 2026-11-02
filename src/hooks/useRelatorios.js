@@ -1,82 +1,39 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { lerUsuarioSalvo } from "../services/authService";
 import * as relatoriosService from "../services/relatoriosService";
 
-const RELATORIOS_INICIAIS = [
-  {
-    id: 1,
-    titulo: "Lixo acumulado em praça central",
-    localizacao: "Praia da Armação",
-    descricao: "Pilha de sacos de lixo e embalagens no entorno da praça, dificultando a passagem dos pedestres.",
-    urgencia: "alta",
-    status: "in-progress",
-    autor: "Maria L.",
-    data: "2026-08-16T09:00:00",
-    imagem: "",
-    multirao: true,
-    participantes: 12,
-    ajudantes: 8,
-    mensagens: [
-      { id: 1, autor: "Maria L.", texto: "Preciso de ajuda para limpar o local até sexta.", data: "2026-08-16T09:25:00" },
-      { id: 2, autor: "João", texto: "Posso levar uma lona e alguns sacos.", data: "2026-08-16T10:10:00" },
-    ],
-    ofertas: [],
-    souDono: false,
-    minhaParticipacao: { ajudando: true, participando: false },
-  },
-  {
-    id: 2,
-    titulo: "Entulho em beco do bairro",
-    localizacao: "Centro",
-    descricao: "Materiais de construção e resíduos de demolição foram jogados em um beco próximo da rua principal.",
-    urgencia: "media",
-    status: "pending",
-    autor: "Pedro S.",
-    data: "2026-08-18T14:15:00",
-    imagem: "",
-    multirao: false,
-    participantes: 0,
-    ajudantes: 3,
-    mensagens: [{ id: 1, autor: "Pedro S.", texto: "Quem pode me ajudar a sinalizar a área?", data: "2026-08-18T14:20:00" }],
-    ofertas: [],
-    souDono: true,
-    minhaParticipacao: { ajudando: false, participando: false },
-  },
-  {
-    id: 3,
-    titulo: "Resíduos na praia e faixa de areia",
-    localizacao: "Ponta das Canas",
-    descricao: "A areia está com plástico e vidro espalhado depois do fim de semana. O cuidado é urgente.",
-    urgencia: "alta",
-    status: "resolved",
-    autor: "Lucas P.",
-    data: "2026-08-12T08:00:00",
-    imagem: "",
-    multirao: true,
-    participantes: 20,
-    ajudantes: 14,
-    mensagens: [{ id: 1, autor: "Lucas P.", texto: "A limpeza foi concluída com apoio da comunidade.", data: "2026-08-13T15:40:00" }],
-    ofertas: [],
-    souDono: false,
-    minhaParticipacao: { ajudando: false, participando: true },
-  },
-];
+export function calcularTaxaResolucao(reportes) {
+  if (reportes.length === 0) return 0;
+  const resolvidos = reportes.filter(
+    (reporte) => reporte.status === "resolved",
+  ).length;
+  return Math.round((resolvidos / reportes.length) * 100);
+}
 
-export function useRelatorios() {
-  const [sessao] = useState(() => lerUsuarioSalvo());
-  const usuarioAutenticado = Boolean(sessao);
-  const [relatorios, setRelatorios] = useState(() =>
-    usuarioAutenticado ? [] : RELATORIOS_INICIAIS,
-  );
-  const [carregando, setCarregando] = useState(usuarioAutenticado);
+export function calcularEstatisticas(reportes, usuarioAutenticado, exigirMeus) {
+  const meusRelatorios = reportes.filter((reporte) => reporte.souDono);
+  const reportesDaVisao = exigirMeus ? meusRelatorios : reportes;
+  const reportesParaTaxa = usuarioAutenticado ? meusRelatorios : reportes;
+
+  return {
+    total: reportesDaVisao.length,
+    resolvidos: reportesDaVisao.filter((reporte) => reporte.status === "resolved").length,
+    emAndamento: reportesDaVisao.filter((reporte) => reporte.status === "in-progress").length,
+    meus: meusRelatorios.length,
+    taxaResolucao: calcularTaxaResolucao(reportesParaTaxa),
+    taxaResolucaoGeral: calcularTaxaResolucao(reportes),
+    taxaIndividual: usuarioAutenticado,
+  };
+}
+
+export function useRelatorios(usuarioAutenticado = false, exigirMeus = false) {
+  const [relatorios, setRelatorios] = useState([]);
+  const [carregando, setCarregando] = useState(true);
   const [erro, setErro] = useState("");
 
   useEffect(() => {
-    if (!usuarioAutenticado) return undefined;
-
     let ativo = true;
     relatoriosService
-      .listarReportes()
+      .listarReportes(usuarioAutenticado, exigirMeus)
       .then((resultado) => {
         if (ativo) setRelatorios(resultado);
       })
@@ -90,7 +47,7 @@ export function useRelatorios() {
     return () => {
       ativo = false;
     };
-  }, [usuarioAutenticado]);
+  }, [exigirMeus, usuarioAutenticado]);
 
   const meusRelatorios = useMemo(
     () => relatorios.filter((reporte) => reporte.souDono),
@@ -98,14 +55,8 @@ export function useRelatorios() {
   );
 
   const estatisticas = useMemo(() => {
-    const total = relatorios.length;
-    const resolvidos = relatorios.filter((reporte) => reporte.status === "resolved").length;
-    const emAndamento = relatorios.filter((reporte) => reporte.status === "in-progress").length;
-    const meus = meusRelatorios.length;
-    const taxaResolucao = total === 0 ? 0 : Math.round((resolvidos / total) * 100);
-
-    return { total, resolvidos, emAndamento, meus, taxaResolucao };
-  }, [meusRelatorios, relatorios]);
+    return calcularEstatisticas(relatorios, usuarioAutenticado, exigirMeus);
+  }, [exigirMeus, relatorios, usuarioAutenticado]);
 
   const criar = async (formulario) => {
     if (!usuarioAutenticado) {
@@ -118,22 +69,17 @@ export function useRelatorios() {
   };
 
   const atualizar = async (id, formulario) => {
+    const atualizado = await relatoriosService.atualizarReporte(id, formulario);
     setRelatorios((atual) =>
       atual.map((reporte) =>
         reporte.id === id
           ? {
               ...reporte,
-              titulo: formulario.titulo,
-              localizacao: formulario.localizacao,
-              cep: formulario.cep,
-              rua: formulario.rua,
-              numero: formulario.numero,
-              cidade: formulario.cidade,
-              estado: formulario.estado,
-              descricao: formulario.descricao,
-              urgencia: formulario.urgencia,
-              imagem: formulario.imagem || "",
-              multirao: Boolean(formulario.multirao),
+              ...atualizado,
+              mensagens: reporte.mensagens,
+              quantidadeMensagens: reporte.quantidadeMensagens,
+              ofertas: reporte.ofertas,
+              minhaParticipacao: reporte.minhaParticipacao,
             }
           : reporte,
       ),
@@ -141,6 +87,7 @@ export function useRelatorios() {
   };
 
   const excluir = async (id) => {
+    await relatoriosService.excluirReporte(id);
     setRelatorios((atual) => atual.filter((reporte) => reporte.id !== id));
   };
 

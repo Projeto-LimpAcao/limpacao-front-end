@@ -10,12 +10,43 @@ export default function PainelEstatisticas({
     emAndamento: 0,
     meus: 0,
     taxaResolucao: 0,
+    taxaResolucaoGeral: 0,
+    taxaIndividual: false,
   },
   filtroAtivo = "todos",
+  meusAtivo = false,
   onFiltrar,
   onVerMeus,
 }) {
-  const { total, resolvidos, emAndamento, meus, taxaResolucao } = estatisticas;
+  const {
+    total,
+    resolvidos,
+    emAndamento,
+    meus,
+    taxaResolucao,
+    taxaResolucaoGeral,
+    taxaIndividual,
+  } = estatisticas;
+  const taxas = taxaIndividual
+    ? [
+        {
+          chave: "individual",
+          rotulo: "Sua taxa de resolução",
+          valor: taxaResolucao,
+        },
+        {
+          chave: "geral",
+          rotulo: "Taxa geral da comunidade",
+          valor: taxaResolucaoGeral,
+        },
+      ]
+    : [
+        {
+          chave: "geral",
+          rotulo: "Taxa de resolução da comunidade",
+          valor: taxaResolucaoGeral,
+        },
+      ];
 
   return (
     <section className="painel-stats">
@@ -26,23 +57,28 @@ export default function PainelEstatisticas({
             <h1 className="painel-stats__titulo">Visão geral dos reportes</h1>
             <p className="painel-stats__descricao">
               Acompanhe o volume de reportes, o progresso das ações e os casos
-              resolvidos na cidade.
+              resolvidos nas comunidades.
             </p>
           </div>
 
-          <div className="painel-stats__taxa">
-            <p className="painel-stats__taxa-label">Taxa de resolução</p>
-            <p className="painel-stats__taxa-valor">{taxaResolucao}%</p>
+          <div className="painel-stats__taxas">
+            {taxas.map(({ chave, rotulo, valor }) => (
+              <div className="painel-stats__taxa" key={chave}>
+                <p className="painel-stats__taxa-label">{rotulo}</p>
+                <p className="painel-stats__taxa-valor">{valor}%</p>
 
-            <div
-              className="painel-stats__barra"
-              role="progressbar"
-              aria-valuenow={taxaResolucao}
-              aria-valuemin={0}
-              aria-valuemax={100}
-            >
-              <span style={{ width: `${taxaResolucao}%` }} />
-            </div>
+                <div
+                  className="painel-stats__barra"
+                  role="progressbar"
+                  aria-label={rotulo}
+                  aria-valuenow={valor}
+                  aria-valuemin={0}
+                  aria-valuemax={100}
+                >
+                  <span style={{ width: `${valor}%` }} />
+                </div>
+              </div>
+            ))}
           </div>
         </div>
 
@@ -75,6 +111,7 @@ export default function PainelEstatisticas({
             icone={<FileText size={28} />}
             valor={meus}
             label="Meus reportes"
+            ativo={meusAtivo}
             onClick={onVerMeus}
           />
         </div>

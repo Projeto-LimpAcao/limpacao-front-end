@@ -23,7 +23,7 @@
   color: #ffffff;
   font-family: var(--fonte-titulo);
   font-weight: var(--peso-negrito);
-  box-shadow: 0 4px 12px rgba(22, 163, 74, 0.3);
+  box-shadow: 0 4px 12px color-mix(in srgb, var(--cor-primaria) 30%, transparent);
 }
 
 .logo__textos {

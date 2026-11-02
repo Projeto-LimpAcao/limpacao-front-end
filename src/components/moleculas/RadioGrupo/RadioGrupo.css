@@ -13,6 +13,11 @@
   color: var(--input-label);
 }
 
+.radio-grupo__obrigatorio {
+  margin-left: var(--espaco-xs);
+  color: var(--input-erro);
+}
+
 .radio-grupo__opcoes {
   display: flex;
   flex-wrap: wrap;
