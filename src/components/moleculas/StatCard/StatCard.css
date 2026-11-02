@@ -5,9 +5,9 @@
   gap: var(--espaco-md);
   width: 100%;
   padding: var(--espaco-lg);
-  border: 1px solid rgba(255, 255, 255, 0.25);
+  border: 1px solid rgba(255, 255, 255, 0.34);
   border-radius: var(--raio-lg);
-  background: rgba(255, 255, 255, 0.15);
+  background: color-mix(in srgb, var(--cor-primaria-escura) 55%, transparent);
   color: inherit;
   text-align: left;
   font: inherit;
@@ -21,13 +21,13 @@
 }
 
 .stat-card--clicavel:hover {
-  background: rgba(255, 255, 255, 0.26);
+  background: color-mix(in srgb, var(--cor-primaria-escura) 68%, transparent);
   transform: translateY(-2px);
 }
 
 .stat-card--ativo {
-  background: rgba(255, 255, 255, 0.3);
-  border-color: rgba(255, 255, 255, 0.6);
+  background: color-mix(in srgb, var(--cor-primaria-escura) 78%, transparent);
+  border-color: rgba(255, 255, 255, 0.72);
 }
 
 .stat-card__textos {
@@ -39,7 +39,7 @@
 
 .stat-card__label {
   font-size: var(--texto-sm);
-  opacity: 0.9;
+  opacity: 1;
 }
 
 .stat-card__valor {
@@ -52,7 +52,7 @@
 .stat-card__icone {
   display: flex;
   flex-shrink: 0;
-  opacity: 0.85;
+  opacity: 1;
 }
 
 .stat-card:focus-visible {

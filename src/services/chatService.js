@@ -72,8 +72,10 @@ export async function listarMensagensChat(relatorioId) {
   return dados.map(mapearMensagemChat).filter(Boolean);
 }
 
-export async function listarContagensMensagens() {
-  const resposta = await requisicaoApi("chat/mensagens/contagens");
+export async function listarContagensMensagens(semAutenticacao = false) {
+  const resposta = await requisicaoApi("chat/mensagens/contagens", {
+    semAutenticacao,
+  });
   await validarRespostaChat(resposta);
 
   const contagens = await resposta.json();

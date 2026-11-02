@@ -74,13 +74,15 @@ export default function AppBar({
                 </span>
 
                 <Botao
-                  variante="fantasma"
+                  variante="secundario"
                   tamanho="pequeno"
                   onClick={onSair}
-                  icone={<LogOut size={18} />}
+                  icone={<LogOut size={16} />}
                   ariaLabel="Sair da conta"
-                  title="Sair"
-                />
+                  title="Sair da conta"
+                >
+                  Sair
+                </Botao>
               </>
             )}
 

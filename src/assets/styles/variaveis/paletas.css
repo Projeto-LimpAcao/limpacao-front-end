@@ -1,0 +1,44 @@
+[data-paleta="azul"] {
+  --cor-primaria: #2563eb;
+  --cor-primaria-escura: #1d4ed8;
+  --cor-primaria-clara: rgba(37, 99, 235, 0.14);
+  --verde-claro: #1d4ed8;
+  --verde-agua: #0e7490;
+  --gradiente-destaque: linear-gradient(100deg, #1d4ed8 0%, #1e40af 45%, #0e7490 100%);
+}
+
+[data-paleta="roxo"] {
+  --cor-primaria: #7c3aed;
+  --cor-primaria-escura: #6d28d9;
+  --cor-primaria-clara: rgba(124, 58, 237, 0.14);
+  --verde-claro: #6d28d9;
+  --verde-agua: #a21caf;
+  --gradiente-destaque: linear-gradient(100deg, #6d28d9 0%, #5b21b6 45%, #a21caf 100%);
+}
+
+[data-paleta="laranja"] {
+  --cor-primaria: #ea580c;
+  --cor-primaria-escura: #c2410c;
+  --cor-primaria-clara: rgba(234, 88, 12, 0.14);
+  --verde-claro: #fb923c;
+  --verde-agua: #d97706;
+  --gradiente-destaque: linear-gradient(100deg, #f97316 0%, #ea580c 45%, #d97706 100%);
+}
+
+[data-paleta="preto"] {
+  --cor-primaria: #262626;
+  --cor-primaria-escura: #171717;
+  --cor-primaria-clara: rgba(38, 38, 38, 0.14);
+  --verde-claro: #525252;
+  --verde-agua: #09090b;
+  --gradiente-destaque: linear-gradient(100deg, #404040 0%, #171717 48%, #09090b 100%);
+}
+
+[data-paleta="rosa"] {
+  --cor-primaria: #e11d48;
+  --cor-primaria-escura: #be123c;
+  --cor-primaria-clara: rgba(225, 29, 72, 0.14);
+  --verde-claro: #be123c;
+  --verde-agua: #be185d;
+  --gradiente-destaque: linear-gradient(100deg, #be123c 0%, #9f1239 45%, #be185d 100%);
+}

@@ -1,10 +1,13 @@
 const API_URL = (import.meta.env.VITE_API_URL || "/api").replace(/\/+$/, "");
 
-export async function requisicaoApi(caminho, opcoes) {
+export async function requisicaoApi(
+  caminho,
+  { semAutenticacao = false, ...opcoes } = {},
+) {
   const headers = new Headers(opcoes?.headers);
   const token = localStorage.getItem("limpacao-token");
 
-  if (token && !headers.has("Authorization")) {
+  if (!semAutenticacao && token && !headers.has("Authorization")) {
     headers.set("Authorization", `Bearer ${token}`);
   }
 

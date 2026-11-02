@@ -43,7 +43,7 @@ export default function FormularioReporte({
         <Input
           label="Título"
           obrigatorio
-          placeholder="Ex: Lixo na Praia da Armação"
+          placeholder="Ex: Descarte irregular em área pública"
           value={formulario.titulo}
           onChange={(evento) => onAlterar("titulo", evento.target.value)}
           erro={Boolean(erros.titulo)}
@@ -61,11 +61,12 @@ export default function FormularioReporte({
           <Input
             label="CEP"
             name="cep"
+            obrigatorio
             placeholder="00000-000"
             value={formulario.cep}
             onChange={alterarCep}
-            erro={Boolean(erroCep)}
-            mensagemErro={erroCep}
+            erro={Boolean(erroCep || erros.cep)}
+            mensagemErro={erroCep || erros.cep}
           />
           <Botao
             variante="secundario"
@@ -89,37 +90,50 @@ export default function FormularioReporte({
         <div className="form-reporte__linha">
           <Input
             label="Rua"
+            obrigatorio
             placeholder="Preenchida pela busca do CEP"
             value={formulario.rua}
             onChange={(evento) => onAlterar("rua", evento.target.value)}
+            erro={Boolean(erros.rua)}
+            mensagemErro={erros.rua}
           />
           <Input
             label="Número"
+            obrigatorio
             placeholder="Ex: 123 ou S/N"
             value={formulario.numero}
             onChange={(evento) => onAlterar("numero", evento.target.value)}
             inputRef={campoNumero}
+            erro={Boolean(erros.numero)}
+            mensagemErro={erros.numero}
           />
         </div>
 
         <div className="form-reporte__linha">
           <Input
             label="Cidade"
+            obrigatorio
             placeholder="Preenchida pela busca do CEP"
             value={formulario.cidade}
             onChange={(evento) => onAlterar("cidade", evento.target.value)}
+            erro={Boolean(erros.cidade)}
+            mensagemErro={erros.cidade}
           />
           <Input
             label="Estado"
+            obrigatorio
             placeholder="UF"
             value={formulario.estado}
             onChange={(evento) => onAlterar("estado", evento.target.value)}
+            erro={Boolean(erros.estado)}
+            mensagemErro={erros.estado}
           />
         </div>
 
         <Input
           label="Bairro ou ponto de referência"
-          placeholder="Ex: Praia da Armação, próximo à praça"
+          obrigatorio
+          placeholder="Ex: Bairro, parque, praça ou ponto de referência"
           value={formulario.localizacao}
           onChange={(evento) => onAlterar("localizacao", evento.target.value)}
           erro={Boolean(erros.localizacao)}
@@ -144,28 +158,40 @@ export default function FormularioReporte({
           value={formulario.urgencia}
           onChange={(evento) => onAlterar("urgencia", evento.target.value)}
           opcoes={URGENCIAS}
-          placeholder=""
+          placeholder="Selecione..."
+          obrigatorio
+          erro={Boolean(erros.urgencia)}
+          mensagemErro={erros.urgencia}
         />
 
-        <RadioGrupo
-          label="Organizar um mutirão?"
-          valor={formulario.multirao}
-          onChange={(valor) => onAlterar("multirao", valor)}
-          opcoes={[
-            { valor: true, label: "Sim" },
-            { valor: false, label: "Não" },
-          ]}
-        />
+        <div>
+          <RadioGrupo
+            label="Organizar um mutirão?"
+            valor={formulario.multirao}
+            onChange={(valor) => onAlterar("multirao", valor)}
+            obrigatorio
+            opcoes={[
+              { valor: true, label: "Sim" },
+              { valor: false, label: "Não" },
+            ]}
+          />
+          {erros.multirao && (
+            <span className="select-mensagem-erro" role="alert">
+              {erros.multirao}
+            </span>
+          )}
+        </div>
       </div>
 
       {/* ---- Foto ---- */}
       <div className="form-reporte__foto">
-        <span className="form-reporte__foto-label">Foto (opcional)</span>
+        <span className="form-reporte__foto-label">Foto *</span>
 
         <div className="form-reporte__foto-area">
           <input
             type="file"
             accept="image/jpeg,image/png,image/gif,image/webp"
+            multiple
             onChange={onArquivoSelecionado}
             className="form-reporte__arquivo"
             ref={entradaArquivo}
@@ -174,28 +200,40 @@ export default function FormularioReporte({
           <Botao
             variante="secundario"
             icone={<ImagePlus size={16} />}
-            onClick={() => entradaArquivo.current?.click()}
+            onClick={() => {
+              entradaArquivo.current.value = "";
+              entradaArquivo.current?.click();
+            }}
+            desabilitado={(formulario.imagens?.length ?? 0) >= 5}
           >
-            {formulario.imagem ? "Trocar foto" : "Escolher foto"}
+            Adicionar imagens ({formulario.imagens?.length ?? 0}/5)
           </Botao>
 
-          {formulario.imagem ? (
-            <div className="form-reporte__previa">
-              <img src={formulario.imagem} alt="Prévia da foto escolhida" />
-
-              <button
-                type="button"
-                className="form-reporte__remover"
-                onClick={onRemoverImagem}
-                aria-label="Remover foto"
-              >
-                <Trash2 size={14} />
-              </button>
+          {(formulario.imagens?.length ?? 0) > 0 ? (
+            <div className="form-reporte__previas">
+              {formulario.imagens.map((imagem, indice) => (
+                <div className="form-reporte__previa" key={`${indice}-${imagem.slice(-24)}`}>
+                  <img src={imagem} alt={`Prévia da imagem ${indice + 1}`} />
+                  <button
+                    type="button"
+                    className="form-reporte__remover"
+                    onClick={() => onRemoverImagem(indice)}
+                    aria-label={`Remover imagem ${indice + 1}`}
+                  >
+                    <Trash2 size={14} />
+                  </button>
+                </div>
+              ))}
             </div>
-          ) : (
-            <p className="form-reporte__dica">
-              Uma foto ajuda muito quem for resolver o problema.
-            </p>
+          ) : null}
+          <p className="form-reporte__dica">
+            Adicione pelo menos uma imagem (até 5 no total; JPEG, PNG, GIF ou
+            WebP; até 5 MB cada).
+          </p>
+          {erros.imagens && (
+            <span className="select-mensagem-erro" role="alert">
+              {erros.imagens}
+            </span>
           )}
         </div>
       </div>

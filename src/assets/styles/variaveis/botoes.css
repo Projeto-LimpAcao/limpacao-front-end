@@ -34,10 +34,46 @@
   --botao-texto-cor: var(--cor-primaria);
 }
 
-/* No modo escuro o texto dos botões coloridos fica escuro (melhor contraste). */
+/* Cores de texto para os fundos claros do tema escuro padrão. */
 [data-tema="escuro"] {
   --botao-primario-texto: var(--neutro-900);
   --botao-sucesso-texto: var(--neutro-900);
   --botao-perigo-texto: var(--neutro-900);
   --botao-outline-hover: var(--cor-primaria);
+}
+
+/* Algumas paletas usam fundos primários escuros e precisam de texto claro. */
+[data-tema="escuro"][data-paleta="azul"] {
+  --botao-primario-fundo: #2563eb;
+  --botao-primario-fundo-hover: #1d4ed8;
+  --botao-primario-texto: #ffffff;
+  --botao-outline-hover: #2563eb;
+}
+
+[data-tema="escuro"][data-paleta="roxo"] {
+  --botao-primario-fundo: #6d28d9;
+  --botao-primario-fundo-hover: #5b21b6;
+  --botao-primario-texto: #ffffff;
+  --botao-outline-hover: #6d28d9;
+}
+
+[data-tema="escuro"][data-paleta="laranja"] {
+  --botao-primario-fundo: #c2410c;
+  --botao-primario-fundo-hover: #9a3412;
+  --botao-primario-texto: #ffffff;
+  --botao-outline-hover: #c2410c;
+}
+
+[data-tema="escuro"][data-paleta="preto"] {
+  --botao-primario-fundo: #404040;
+  --botao-primario-fundo-hover: #262626;
+  --botao-primario-texto: #ffffff;
+  --botao-outline-hover: #404040;
+}
+
+[data-tema="escuro"][data-paleta="rosa"] {
+  --botao-primario-fundo: #be123c;
+  --botao-primario-fundo-hover: #9f1239;
+  --botao-primario-texto: #ffffff;
+  --botao-outline-hover: #be123c;
 }

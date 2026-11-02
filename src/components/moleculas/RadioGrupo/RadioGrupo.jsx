@@ -1,13 +1,23 @@
 import { useId } from "react";
 import "./RadioGrupo.css";
 
-export default function RadioGrupo({ label, valor, onChange, opcoes = [] }) {
-  
+export default function RadioGrupo({
+  label,
+  valor,
+  onChange,
+  opcoes = [],
+  obrigatorio = false,
+}) {
   const nome = useId();
 
   return (
     <fieldset className="radio-grupo">
-      {label && <legend className="radio-grupo__label">{label}</legend>}
+      {label && (
+        <legend className="radio-grupo__label">
+          {label}
+          {obrigatorio && <span className="radio-grupo__obrigatorio">*</span>}
+        </legend>
+      )}
 
       <div className="radio-grupo__opcoes">
         {opcoes.map((opcao) => (

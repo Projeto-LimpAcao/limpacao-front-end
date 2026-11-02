@@ -1,3 +1,4 @@
+import { useEffect, useRef, useState } from "react";
 import {
   MapPin,
   Pencil,
@@ -8,6 +9,8 @@ import {
   AlertCircle,
   Clock,
   CheckCircle2,
+  ChevronLeft,
+  ChevronRight,
 } from "lucide-react";
 
 import "./CardReporte.css";
@@ -31,28 +34,65 @@ export default function CardReporte({
   onAjudar,
   onParticipar,
   onMudarStatus,
-  imagemAberta = false,
-  onAbrirImagem,
-  onFecharImagem,
+  estaLogado = false,
 }) {
+  const [imagemAberta, setImagemAberta] = useState(false);
+  const [indiceImagem, setIndiceImagem] = useState(0);
+  const [indiceCapa, setIndiceCapa] = useState(0);
+  const pausarCarrosselRef = useRef(false);
+  const imagens = reporte.imagens?.length
+    ? reporte.imagens
+    : reporte.imagem
+      ? [reporte.imagem]
+      : [];
+
+  useEffect(() => {
+    if (imagens.length < 2) return undefined;
+
+    const temporizador = window.setInterval(() => {
+      if (imagemAberta || pausarCarrosselRef.current) return;
+      setIndiceCapa((indice) => (indice + 1) % imagens.length);
+    }, 6000);
+
+    return () => window.clearInterval(temporizador);
+  }, [imagemAberta, imagens.length]);
+
   const urg = infoUrgencia(reporte.urgencia);
   const st = infoStatus(reporte.status);
   const IconeStatus = ICONE_STATUS[reporte.status];
 
   const estouAjudando = reporte.minhaParticipacao?.ajudando;
   const estouParticipando = reporte.minhaParticipacao?.participando;
+  const souDono = estaLogado && reporte.souDono;
 
   return (
     <>
       <article className={`card-reporte card-reporte--${reporte.urgencia}`}>
-        {reporte.imagem && (
+        {imagens.length > 0 && (
           <button
             type="button"
             className="card-reporte__foto"
-            onClick={onAbrirImagem}
-            aria-label={`Ver foto de ${reporte.titulo}`}
+            onClick={() => {
+              setIndiceImagem(indiceCapa);
+              setImagemAberta(true);
+            }}
+            onMouseEnter={() => {
+              pausarCarrosselRef.current = true;
+            }}
+            onMouseLeave={() => {
+              pausarCarrosselRef.current = false;
+            }}
+            aria-label={`Ver ${imagens.length === 1 ? "imagem" : `${imagens.length} imagens`} de ${reporte.titulo}`}
           >
-            <img src={reporte.imagem} alt={reporte.titulo} />
+            <img
+              src={imagens[indiceCapa]}
+              alt={`${reporte.titulo} — imagem ${indiceCapa + 1} de ${imagens.length}`}
+            />
+            {imagens.length > 1 && (
+              <span className="card-reporte__foto-contagem">
+                {indiceCapa + 1} / {imagens.length} fotos
+              </span>
+            )}
           </button>
         )}
 
@@ -110,7 +150,7 @@ export default function CardReporte({
               Ver mensagens
             </button>
 
-            {!reporte.souDono && (
+            {!souDono && (
               <>
                 <button
                   type="button"
@@ -139,7 +179,7 @@ export default function CardReporte({
             )}
           </div>
 
-          {reporte.souDono && (
+          {souDono && (
             <div className="card-reporte__dono">
               <div className="card-reporte__dono-botoes">
                 <button
@@ -177,15 +217,45 @@ export default function CardReporte({
 
       <Modal
         aberto={imagemAberta}
-        onFechar={onFecharImagem}
+        onFechar={() => setImagemAberta(false)}
         titulo={reporte.titulo}
-        largura="760px"
+        largura="1400px"
+        className="modal--imagem-reporte"
       >
-        <img
-          src={reporte.imagem}
-          alt={reporte.titulo}
-          className="card-reporte__foto-grande"
-        />
+        <div className="card-reporte__galeria">
+          {imagens.length > 1 && (
+            <button
+              type="button"
+              className="card-reporte__navegacao-imagem"
+              onClick={() =>
+                setIndiceImagem((indice) => (indice - 1 + imagens.length) % imagens.length)
+              }
+              aria-label="Imagem anterior"
+            >
+              <ChevronLeft size={24} />
+            </button>
+          )}
+          <img
+            src={imagens[indiceImagem]}
+            alt={`${reporte.titulo} — imagem ${indiceImagem + 1} de ${imagens.length}`}
+            className="card-reporte__foto-grande"
+          />
+          {imagens.length > 1 && (
+            <>
+              <button
+                type="button"
+                className="card-reporte__navegacao-imagem"
+                onClick={() => setIndiceImagem((indice) => (indice + 1) % imagens.length)}
+                aria-label="Próxima imagem"
+              >
+                <ChevronRight size={24} />
+              </button>
+              <span className="card-reporte__galeria-contagem">
+                {indiceImagem + 1} / {imagens.length}
+              </span>
+            </>
+          )}
+        </div>
       </Modal>
     </>
   );
