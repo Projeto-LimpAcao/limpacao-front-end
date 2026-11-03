@@ -7,6 +7,7 @@ export default function InputTexto({
   id,
   value,
   onChange,
+  onKeyDown,
   placeholder = "",
   desabilitado = false,
   erro = false,
@@ -44,6 +45,7 @@ export default function InputTexto({
           ref={inputRef}
           value={value}
           onChange={onChange}
+          onKeyDown={onKeyDown}
           placeholder={placeholder}
           autoComplete={autoComplete}
           disabled={desabilitado}

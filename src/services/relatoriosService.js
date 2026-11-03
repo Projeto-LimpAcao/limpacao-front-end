@@ -26,24 +26,39 @@ const STATUS_API = {
   resolved: "RESOLVIDO",
 };
 
-async function validarResposta(resposta) {
+async function validarResposta(resposta, recurso = "reportes") {
   if (resposta.ok) return;
 
   if (resposta.status === 401) {
-    throw new Error("Sua sessão expirou. Entre novamente para continuar.");
+    const erro = new Error("Sua sessão expirou. Entre novamente para continuar.");
+    erro.status = resposta.status;
+    throw erro;
   }
   if (resposta.status === 403) {
-    throw new Error(
+    const erro = new Error(
       "Acesso negado pelo servidor. Saia da conta e entre novamente para renovar a sessão.",
     );
+    erro.status = resposta.status;
+    throw erro;
+  }
+  if (resposta.status === 409) {
+    const erro = new Error("Você já enviou uma oferta de ajuda para este reporte.");
+    erro.status = resposta.status;
+    throw erro;
   }
 
   throw new Error(
-    `Não foi possível acessar os reportes (${resposta.status}).`,
+    `Não foi possível acessar ${recurso} (${resposta.status}).`,
   );
 }
 
-function mapearReporte(reporte, souDono = false, quantidadeMensagens = 0) {
+function mapearReporte(
+  reporte,
+  souDono = false,
+  quantidadeMensagens = 0,
+  ofertas = [],
+  minhaOferta = null,
+) {
   let imagens = [];
   if (Array.isArray(reporte.imagens)) {
     imagens = reporte.imagens.filter((imagem) => typeof imagem === "string" && imagem);
@@ -69,9 +84,13 @@ function mapearReporte(reporte, souDono = false, quantidadeMensagens = 0) {
     ajudantes: reporte.ajudantes ?? 0,
     mensagens: [],
     quantidadeMensagens,
-    ofertas: [],
+    ofertas,
     souDono,
-    minhaParticipacao: { ajudando: false, participando: false },
+    minhaOfertaId: minhaOferta?.id ?? null,
+    minhaParticipacao: {
+      ajudando: Boolean(minhaOferta),
+      participando: false,
+    },
   };
 }
 
@@ -103,10 +122,16 @@ export async function listarReportes(
 
   const todos = await respostaTodos.json();
   let meus = [];
+  let ofertas = [];
+  let minhasOfertas = [];
   if (incluirMeus) {
     const respostaMeus = await requisicaoApi("relatorios/meus");
     if (respostaMeus.ok) {
       meus = await respostaMeus.json();
+      minhasOfertas = await listarOfertasAjudaEnviadas();
+      if (meus.length > 0) {
+        ofertas = await listarOfertasAjudaMeus();
+      }
     } else if (exigirMeus || respostaMeus.status !== 401) {
       await validarResposta(respostaMeus);
     }
@@ -119,8 +144,62 @@ export async function listarReportes(
       reporte,
       idsMeus.has(reporte.id),
       contagens[reporte.id] ?? 0,
+      ofertas
+        .filter((oferta) => oferta.relatorioId === reporte.id)
+        .map((oferta) => ({ ...oferta, data: oferta.criadoEm })),
+      minhasOfertas.find((oferta) => oferta.relatorioId === reporte.id) ?? null,
     ),
   );
+}
+
+export async function listarOfertasAjudaMeus() {
+  const resposta = await requisicaoApi("ofertas-ajuda/minhas");
+  await validarResposta(resposta, "as ofertas de ajuda");
+  return resposta.json();
+}
+
+export async function criarOfertaAjuda(relatorioId, formulario) {
+  const resposta = await requisicaoApi(
+    `relatorios/${relatorioId}/ofertas-ajuda`,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        telefone: formulario.telefone,
+        mensagem: formulario.mensagem ?? "",
+      }),
+    },
+  );
+  await validarResposta(resposta, "a oferta de ajuda");
+  return resposta.json();
+}
+
+export async function listarOfertasAjudaEnviadas() {
+  const resposta = await requisicaoApi("ofertas-ajuda/enviadas");
+  await validarResposta(resposta, "suas ofertas de ajuda");
+  return resposta.json();
+}
+
+export async function listarMensagensAjudaNaoLidas() {
+  const resposta = await requisicaoApi("ofertas-ajuda/mensagens-nao-lidas");
+  await validarResposta(resposta, "as notificações de mensagens");
+  return resposta.json();
+}
+
+export async function listarMensagensConversaAjuda(ofertaId) {
+  const resposta = await requisicaoApi(`ofertas-ajuda/${ofertaId}/mensagens`);
+  await validarResposta(resposta, "a conversa de ajuda");
+  return resposta.json();
+}
+
+export async function enviarMensagemConversaAjuda(ofertaId, texto) {
+  const resposta = await requisicaoApi(`ofertas-ajuda/${ofertaId}/mensagens`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ texto }),
+  });
+  await validarResposta(resposta, "a mensagem");
+  return resposta.json();
 }
 
 export async function criarReporte(formulario) {
