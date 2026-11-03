@@ -273,6 +273,7 @@
 }
 
 .card-reporte__icone {
+  position: relative;
   display: grid;
   place-items: center;
   width: 34px;
@@ -285,6 +286,38 @@
   transition:
     color var(--transicao),
     border-color var(--transicao);
+}
+
+.card-reporte__notificacoes-contagem {
+  position: absolute;
+  top: -6px;
+  right: -7px;
+  display: grid;
+  place-items: center;
+  min-width: 17px;
+  height: 17px;
+  padding-inline: 4px;
+  border: 2px solid var(--superficie);
+  border-radius: var(--raio-total);
+  background: var(--cor-perigo);
+  color: var(--neutro-0);
+  font-size: 10px;
+  font-weight: var(--peso-negrito);
+  line-height: 1;
+}
+
+.card-reporte__mensagens-contagem {
+  display: inline-grid;
+  min-width: 18px;
+  height: 18px;
+  padding-inline: 5px;
+  border-radius: var(--raio-total);
+  background: var(--cor-perigo);
+  color: var(--neutro-0);
+  font-size: 10px;
+  font-weight: var(--peso-negrito);
+  line-height: 1;
+  place-items: center;
 }
 
 .card-reporte__icone:hover {

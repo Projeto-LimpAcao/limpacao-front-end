@@ -1,0 +1,37 @@
+.modal-ajuda__mensagem {
+  display: grid;
+  gap: var(--espaco-xs);
+  padding: var(--espaco-md);
+  border: 1px solid var(--borda-padrao);
+  border-radius: var(--raio-md);
+  background: var(--superficie-suave);
+}
+
+.modal-ajuda__saudacao {
+  color: var(--texto-principal);
+  font-size: var(--texto-base);
+  font-weight: var(--peso-semi);
+}
+
+.modal-ajuda__agradecimento {
+  color: var(--texto-secundario);
+  font-size: var(--texto-sm);
+}
+
+.modal-ajuda__privacidade {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--espaco-xs);
+  margin-top: var(--espaco-xs);
+  padding-top: var(--espaco-sm);
+  border-top: 1px solid var(--borda-padrao);
+  color: var(--texto-secundario);
+  font-size: var(--texto-xs);
+  line-height: var(--altura-linha-solta);
+}
+
+.modal-ajuda__privacidade svg {
+  flex: 0 0 auto;
+  margin-top: 2px;
+  color: var(--cor-primaria);
+}

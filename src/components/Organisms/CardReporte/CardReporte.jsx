@@ -4,8 +4,10 @@ import {
   Pencil,
   Trash2,
   MessageSquare,
+  MessageCircle,
   HandHeart,
   Users,
+  Bell,
   AlertCircle,
   Clock,
   CheckCircle2,
@@ -34,6 +36,9 @@ export default function CardReporte({
   onAjudar,
   onParticipar,
   onMudarStatus,
+  onVerOfertas,
+  onConversarOferta,
+  onVerMensagensNaoLidas,
   estaLogado = false,
 }) {
   const [imagemAberta, setImagemAberta] = useState(false);
@@ -134,6 +139,11 @@ export default function CardReporte({
               <span className="card-reporte__contador">
                 {reporte.ajudantes} ajudando
               </span>
+              {souDono && (
+                <span className="card-reporte__contador">
+                  {reporte.ofertas?.length ?? 0} ofertas de ajuda
+                </span>
+              )}
               <span className="card-reporte__contador">
                 {reporte.quantidadeMensagens ?? reporte.mensagens?.length ?? 0} mensagens
               </span>
@@ -147,7 +157,7 @@ export default function CardReporte({
               onClick={onAbrirChat}
             >
               <MessageSquare size={15} />
-              Ver mensagens
+              Mensagens da comunidade
             </button>
 
             {!souDono && (
@@ -157,10 +167,19 @@ export default function CardReporte({
                   className={`card-reporte__acao ${
                     estouAjudando ? "card-reporte__acao--ativa" : ""
                   }`}
-                  onClick={onAjudar}
+                  onClick={estouAjudando ? onConversarOferta : onAjudar}
                 >
-                  <HandHeart size={15} />
-                  {estouAjudando ? "Ajudando" : "Quero ajudar"}
+                  {estouAjudando ? (
+                    <MessageCircle size={15} />
+                  ) : (
+                    <HandHeart size={15} />
+                  )}
+                  {estouAjudando ? "Mensagens privadas" : "Quero ajudar"}
+                  {estouAjudando && reporte.mensagensNaoLidasMinhaOferta > 0 && (
+                    <span className="card-reporte__mensagens-contagem">
+                      {reporte.mensagensNaoLidasMinhaOferta}
+                    </span>
+                  )}
                 </button>
 
                 {reporte.multirao && (
@@ -182,6 +201,42 @@ export default function CardReporte({
           {souDono && (
             <div className="card-reporte__dono">
               <div className="card-reporte__dono-botoes">
+                {onVerOfertas && (
+                  <button
+                    type="button"
+                    className="card-reporte__icone card-reporte__notificacoes"
+                    onClick={onVerOfertas}
+                    aria-label={`Ver ${reporte.ofertas?.length ?? 0} ofertas de ajuda para ${reporte.titulo}`}
+                    title="Ofertas de ajuda"
+                  >
+                    <Bell size={16} aria-hidden="true" />
+                    {(reporte.ofertas?.length ?? 0) > 0 && (
+                      <span className="card-reporte__notificacoes-contagem">
+                        {reporte.ofertas.length}
+                      </span>
+                    )}
+                  </button>
+                )}
+                {onVerMensagensNaoLidas && (
+                  <button
+                    type="button"
+                    className="card-reporte__icone card-reporte__notificacoes"
+                    onClick={onVerMensagensNaoLidas}
+                    aria-label={
+                      reporte.mensagensNaoLidas > 0
+                        ? `Abrir mensagens privadas: ${reporte.mensagensNaoLidas} não lidas`
+                        : "Abrir mensagens privadas"
+                    }
+                    title="Mensagens privadas"
+                  >
+                    <MessageCircle size={16} aria-hidden="true" />
+                    {reporte.mensagensNaoLidas > 0 && (
+                      <span className="card-reporte__notificacoes-contagem">
+                        {reporte.mensagensNaoLidas}
+                      </span>
+                    )}
+                  </button>
+                )}
                 <button
                   type="button"
                   className="card-reporte__icone"
