@@ -1,0 +1,113 @@
+.modal--conversa-ajuda {
+  height: min(84dvh, 720px);
+}
+
+.modal--conversa-ajuda .modal__conteudo {
+  overflow: hidden;
+}
+
+.modal--conversa-ajuda .textarea-container {
+  flex: 0 0 auto;
+}
+
+.modal--conversa-ajuda .textarea {
+  min-height: 88px;
+  max-height: 160px;
+}
+
+.conversa-ajuda__reporte,
+.conversa-ajuda__estado,
+.conversa-ajuda__dica {
+  color: var(--texto-secundario);
+  font-size: var(--texto-sm);
+}
+
+.conversa-ajuda__mensagens {
+  display: flex;
+  flex: 1 1 0;
+  min-height: 120px;
+  flex-direction: column;
+  gap: var(--espaco-sm);
+  overflow-y: auto;
+  padding: var(--espaco-md);
+  border: 1px solid var(--borda-padrao);
+  border-radius: var(--raio-md);
+  background: var(--superficie-suave);
+}
+
+.conversa-ajuda__estado {
+  margin: auto;
+  text-align: center;
+}
+
+.conversa-ajuda__mensagem {
+  align-self: flex-start;
+  width: fit-content;
+  max-width: 82%;
+  padding: var(--espaco-sm) var(--espaco-md);
+  border: 1px solid var(--borda-padrao);
+  border-radius: var(--raio-md);
+  background: var(--superficie);
+  overflow-wrap: anywhere;
+}
+
+.conversa-ajuda__mensagem--minha {
+  align-self: flex-end;
+  border-color: var(--cor-primaria-clara);
+  background: var(--cor-primaria-clara);
+}
+
+.conversa-ajuda__mensagem-topo {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--espaco-md);
+  margin-bottom: var(--espaco-xs);
+}
+
+.conversa-ajuda__mensagem-topo strong {
+  color: var(--texto-principal);
+  font-size: var(--texto-xs);
+}
+
+.conversa-ajuda__mensagem-topo time {
+  color: var(--texto-secundario);
+  font-size: var(--texto-xs);
+}
+
+.conversa-ajuda__mensagem > p {
+  color: var(--texto-principal);
+  font-size: var(--texto-sm);
+  line-height: var(--altura-linha-solta);
+  white-space: pre-wrap;
+}
+
+.conversa-ajuda__dica {
+  margin-top: calc(-1 * var(--espaco-sm));
+  font-size: var(--texto-xs);
+}
+
+@media (max-width: 560px) {
+  .modal--conversa-ajuda {
+    height: min(90dvh, 720px);
+    padding: var(--espaco-md);
+  }
+
+  .modal--conversa-ajuda .textarea {
+    min-height: 72px;
+  }
+
+  .conversa-ajuda__mensagens {
+    min-height: 96px;
+  }
+
+  .conversa-ajuda__mensagem {
+    max-width: 94%;
+  }
+
+  .conversa-ajuda__mensagem-topo {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 2px;
+  }
+}

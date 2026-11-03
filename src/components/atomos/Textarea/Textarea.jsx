@@ -48,6 +48,7 @@ export default function Textarea({
         placeholder={placeholder}
         rows={linhas}
         disabled={desabilitado}
+        required={obrigatorio}
         aria-invalid={erro || undefined}
         className={`textarea ${erro ? "textarea--erro" : ""}`}
       />

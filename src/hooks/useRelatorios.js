@@ -25,10 +25,76 @@ export function calcularEstatisticas(reportes, usuarioAutenticado, exigirMeus) {
   };
 }
 
+export function associarOfertasAjuda(reportes, ofertas) {
+  const ofertasPorReporte = new Map();
+  ofertas.forEach((oferta) => {
+    const doReporte = ofertasPorReporte.get(oferta.relatorioId) ?? [];
+    doReporte.push({ ...oferta, data: oferta.criadoEm ?? oferta.data });
+    ofertasPorReporte.set(oferta.relatorioId, doReporte);
+  });
+
+  return reportes.map((reporte) => {
+    if (!reporte.souDono) return reporte;
+    return {
+      ...reporte,
+      ofertas: ofertasPorReporte.get(reporte.id) ?? [],
+    };
+  });
+}
+
+export function associarMensagensNaoLidas(reportes, notificacoes) {
+  const quantidades = new Map(
+    notificacoes.map(({ ofertaId, quantidade }) => [ofertaId, quantidade]),
+  );
+
+  return reportes.map((reporte) => {
+    const ofertas = (reporte.ofertas ?? []).map((oferta) => ({
+      ...oferta,
+      mensagensNaoLidas: quantidades.get(oferta.id) ?? 0,
+    }));
+    const mensagensDaMinhaOferta = quantidades.get(reporte.minhaOfertaId) ?? 0;
+    const mensagensDoReporte = reporte.souDono
+      ? ofertas.reduce((total, oferta) => total + oferta.mensagensNaoLidas, 0)
+      : mensagensDaMinhaOferta;
+
+    return {
+      ...reporte,
+      ofertas,
+      mensagensNaoLidas: mensagensDoReporte,
+      mensagensNaoLidasMinhaOferta: mensagensDaMinhaOferta,
+    };
+  });
+}
+
+export function listarMensagensNaoVisualizadas(reportes) {
+  return reportes.flatMap((reporte) =>
+    reporte.souDono
+      ? (reporte.ofertas ?? [])
+          .filter((oferta) => oferta.mensagensNaoLidas > 0)
+          .map((oferta) => ({
+            ...oferta,
+            tituloReporte: reporte.titulo,
+          }))
+      : [],
+  );
+}
+
+export function validarFormularioOferta(formulario) {
+  if (!formulario?.telefone?.trim()) {
+    throw new Error("O telefone é obrigatório.");
+  }
+  if (!formulario?.mensagem?.trim()) {
+    throw new Error("Descreva como você pode ajudar.");
+  }
+}
+
 export function useRelatorios(usuarioAutenticado = false, exigirMeus = false) {
   const [relatorios, setRelatorios] = useState([]);
   const [carregando, setCarregando] = useState(true);
   const [erro, setErro] = useState("");
+  const [erroOfertas, setErroOfertas] = useState("");
+  const [erroMensagensNaoLidas, setErroMensagensNaoLidas] = useState("");
+  const [mensagensNaoLidas, setMensagensNaoLidas] = useState([]);
 
   useEffect(() => {
     let ativo = true;
@@ -49,10 +115,69 @@ export function useRelatorios(usuarioAutenticado = false, exigirMeus = false) {
     };
   }, [exigirMeus, usuarioAutenticado]);
 
-  const meusRelatorios = useMemo(
-    () => relatorios.filter((reporte) => reporte.souDono),
-    [relatorios],
-  );
+  useEffect(() => {
+    if (!usuarioAutenticado) return undefined;
+
+    let ativo = true;
+    let atualizando = false;
+    const atualizarOfertas = async () => {
+      if (atualizando) return;
+      atualizando = true;
+
+      try {
+        const ofertas = await relatoriosService.listarOfertasAjudaMeus();
+        if (!ativo) return;
+        setRelatorios((atual) => associarOfertasAjuda(atual, ofertas));
+        setErroOfertas("");
+      } catch (problema) {
+        if (ativo) setErroOfertas(problema.message);
+      } finally {
+        atualizando = false;
+      }
+    };
+
+    const temporizador = window.setInterval(atualizarOfertas, 10000);
+    window.addEventListener("focus", atualizarOfertas);
+
+    return () => {
+      ativo = false;
+      window.clearInterval(temporizador);
+      window.removeEventListener("focus", atualizarOfertas);
+    };
+  }, [usuarioAutenticado]);
+
+  useEffect(() => {
+    if (!usuarioAutenticado) return undefined;
+
+    let ativo = true;
+    let consultando = false;
+    const atualizarMensagensNaoLidas = async () => {
+      if (consultando) return;
+      consultando = true;
+      try {
+        const notificacoes =
+          await relatoriosService.listarMensagensAjudaNaoLidas();
+        if (ativo) {
+          setMensagensNaoLidas(notificacoes);
+          setErroMensagensNaoLidas("");
+        }
+      } catch (problema) {
+        if (ativo) setErroMensagensNaoLidas(problema.message);
+      } finally {
+        consultando = false;
+      }
+    };
+
+    void atualizarMensagensNaoLidas();
+    const temporizador = window.setInterval(atualizarMensagensNaoLidas, 10000);
+    window.addEventListener("focus", atualizarMensagensNaoLidas);
+
+    return () => {
+      ativo = false;
+      window.clearInterval(temporizador);
+      window.removeEventListener("focus", atualizarMensagensNaoLidas);
+    };
+  }, [usuarioAutenticado]);
 
   const estatisticas = useMemo(() => {
     return calcularEstatisticas(relatorios, usuarioAutenticado, exigirMeus);
@@ -178,6 +303,12 @@ export function useRelatorios(usuarioAutenticado = false, exigirMeus = false) {
     );
   }, []);
 
+  const marcarMensagensLidas = useCallback((ofertaId) => {
+    setMensagensNaoLidas((atuais) =>
+      atuais.filter((notificacao) => notificacao.ofertaId !== ofertaId),
+    );
+  }, []);
+
   const enviarMensagem = async (id, texto) => {
     if (!texto || !texto.trim()) {
       throw new Error("Escreva uma mensagem antes de enviar.");
@@ -200,33 +331,55 @@ export function useRelatorios(usuarioAutenticado = false, exigirMeus = false) {
   };
 
   const enviarOferta = async (id, formulario) => {
-    if (!formulario?.nome || !formulario?.telefone) {
-      throw new Error("Nome e telefone são obrigatórios.");
-    }
+    validarFormularioOferta(formulario);
 
-    const novaOferta = {
-      id: Date.now(),
-      nome: formulario.nome,
-      telefone: formulario.telefone,
-      mensagem: formulario.mensagem || "",
-      data: new Date().toISOString(),
-    };
+    const novaOferta = await relatoriosService.criarOfertaAjuda(
+      id,
+      formulario,
+    );
 
     setRelatorios((atual) =>
       atual.map((reporte) =>
         reporte.id === id
-          ? { ...reporte, ofertas: [...(reporte.ofertas ?? []), novaOferta] }
+          ? {
+              ...reporte,
+              ofertas: [
+                ...(reporte.ofertas ?? []),
+                { ...novaOferta, data: novaOferta.criadoEm },
+              ],
+              minhaOfertaId: novaOferta.id,
+              minhaParticipacao: {
+                ...reporte.minhaParticipacao,
+                ajudando: true,
+              },
+            }
           : reporte,
       ),
     );
+    return novaOferta;
   };
 
+  const relatoriosComNotificacoes = useMemo(
+    () => associarMensagensNaoLidas(
+      relatorios,
+      usuarioAutenticado ? mensagensNaoLidas : [],
+    ),
+    [mensagensNaoLidas, relatorios, usuarioAutenticado],
+  );
+
+  const meusRelatorios = useMemo(
+    () => relatoriosComNotificacoes.filter((reporte) => reporte.souDono),
+    [relatoriosComNotificacoes],
+  );
+
   return {
-    relatorios,
+    relatorios: relatoriosComNotificacoes,
     meusRelatorios,
     estatisticas,
     carregando,
     erro,
+    erroOfertas,
+    erroMensagensNaoLidas: usuarioAutenticado ? erroMensagensNaoLidas : "",
     criar,
     atualizar,
     excluir,
@@ -234,6 +387,7 @@ export function useRelatorios(usuarioAutenticado = false, exigirMeus = false) {
     alternarParticipacao,
     carregarDetalhes,
     registrarHistoricoMensagens,
+    marcarMensagensLidas,
     enviarMensagem,
     registrarMensagemRecebida,
     enviarOferta,
