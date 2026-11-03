@@ -1,6 +1,6 @@
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, HandHeart, MessageCircle, Phone } from "lucide-react";
 
 import "./Reportes.css";
 import {
@@ -16,14 +16,19 @@ import {
   FormularioReporte,
   ModalAjuda,
   ModalChat,
+  ModalConversaAjuda,
   PainelEstatisticas,
   PainelFiltros,
 } from "../../index";
 import { useAuth, useRelatorios } from "../../../hooks";
+import { listarMensagensNaoVisualizadas } from "../../../hooks/useRelatorios";
 import { buscarEnderecoPorCep } from "../../../services/cepService";
 import { filtrarReportes } from "../../../utils/filtrar";
 import { lerImagemComoTexto } from "../../utils/formatar";
 import { CAMINHOS } from "../../../rotas/caminhos";
+import { formatarDataHora } from "../../utils/formatar";
+import { listarMensagensConversaAjuda } from "../../../services/relatoriosService";
+import { resolverOfertaConversaAjuda } from "../../../utils/resolverOfertaConversaAjuda";
 
 const TAMANHO_MAXIMO_IMAGEM = 5 * 1024 * 1024;
 const TIPOS_IMAGEM_SUPORTADOS = [
@@ -46,6 +51,11 @@ const FORMULARIO_VAZIO = {
   urgencia: "",
   imagens: [],
   multirao: null,
+};
+
+const FORMULARIO_AJUDA_VAZIO = {
+  telefone: "",
+  mensagem: "",
 };
 
 function montarEndereco(formulario) {
@@ -82,7 +92,7 @@ function extrairReferencia(reporte) {
 }
 
 export default function Reportes({ somenteMeus = false }) {
-  const { usuario, sair } = useAuth();
+  const { usuario } = useAuth();
   const navegar = useNavigate();
   const local = useLocation();
 
@@ -92,6 +102,8 @@ export default function Reportes({ somenteMeus = false }) {
     estatisticas,
     carregando,
     erro,
+    erroOfertas,
+    erroMensagensNaoLidas,
     criar,
     atualizar,
     excluir,
@@ -99,6 +111,7 @@ export default function Reportes({ somenteMeus = false }) {
     alternarParticipacao,
     carregarDetalhes,
     registrarHistoricoMensagens,
+    marcarMensagensLidas,
     enviarMensagem,
     registrarMensagemRecebida,
     enviarOferta,
@@ -126,6 +139,18 @@ export default function Reportes({ somenteMeus = false }) {
 
   const [idChat, setIdChat] = useState(null);
   const [idAjuda, setIdAjuda] = useState(null);
+  const [idOfertas, setIdOfertas] = useState(null);
+  const [mostrarSelecaoConversa, setMostrarSelecaoConversa] = useState(false);
+  const [idConversaAjuda, setIdConversaAjuda] = useState(null);
+  const [mensagensConversaInicial, setMensagensConversaInicial] = useState([]);
+  const [iniciandoConversaId, setIniciandoConversaId] = useState(null);
+  const [erroConversaAjuda, setErroConversaAjuda] = useState("");
+  const [formularioAjuda, setFormularioAjuda] = useState(
+    FORMULARIO_AJUDA_VAZIO,
+  );
+  const [errosAjuda, setErrosAjuda] = useState({});
+  const [erroOferta, setErroOferta] = useState("");
+  const [enviandoOferta, setEnviandoOferta] = useState(false);
   const [paraExcluir, setParaExcluir] = useState(null);
   const [excluindo, setExcluindo] = useState(false);
 
@@ -137,15 +162,22 @@ export default function Reportes({ somenteMeus = false }) {
     [],
   );
 
-  useEffect(() => {
-    if (!somenteMeus || !usuario || !erro.includes("Sua sessão expirou")) return;
-    sair();
-    navegar(CAMINHOS.login, { replace: true });
-  }, [erro, navegar, sair, somenteMeus, usuario]);
-
   const lista = filtrarReportes(somenteMeus ? meusRelatorios : relatorios, filtros);
+  const conversasNaoVisualizadas = somenteMeus
+    ? listarMensagensNaoVisualizadas(relatorios)
+    : [];
+  const totalMensagensNaoVisualizadas = conversasNaoVisualizadas.reduce(
+    (total, conversa) => total + conversa.mensagensNaoLidas,
+    0,
+  );
   const reporteChat = relatorios.find((r) => r.id === idChat) ?? null;
   const reporteAjuda = relatorios.find((r) => r.id === idAjuda) ?? null;
+  const reporteOfertas =
+    relatorios.find((reporte) => reporte.id === idOfertas) ?? null;
+  const ofertaConversaAjuda = resolverOfertaConversaAjuda(
+    relatorios,
+    idConversaAjuda,
+  );
 
   /* ---------------- 2. Ações ---------------- */
 
@@ -404,13 +436,80 @@ export default function Reportes({ somenteMeus = false }) {
   /* Se já estou ajudando, o clique desfaz. Se não, abre o formulário. */
   const aoClicarAjudar = (reporte) => {
     if (!exigirLogin()) return;
-    if (reporte.minhaParticipacao.ajudando) {
-      alternarParticipacao(reporte.id, "ajudando");
-      return;
-    }
+    if (reporte.minhaParticipacao.ajudando) return;
 
+    setFormularioAjuda(FORMULARIO_AJUDA_VAZIO);
+    setErrosAjuda({});
+    setErroOferta("");
     setIdAjuda(reporte.id);
   };
+
+  const alterarCampoAjuda = (campo) => (evento) => {
+    setFormularioAjuda((atual) => ({
+      ...atual,
+      [campo]: evento.target.value,
+    }));
+    setErrosAjuda((atual) => ({ ...atual, [campo]: "" }));
+    setErroOferta("");
+  };
+
+  const enviarOfertaAjuda = async (id, dados) => {
+    const novosErros = {};
+    if (!dados.telefone?.trim()) {
+      novosErros.telefone = "O telefone é obrigatório.";
+    }
+    if (!dados.mensagem?.trim()) {
+      novosErros.mensagem = "Descreva como você pode ajudar.";
+    }
+    setErrosAjuda(novosErros);
+    if (Object.keys(novosErros).length > 0) return;
+
+    setEnviandoOferta(true);
+    setErroOferta("");
+    try {
+      await enviarOferta(id, dados);
+      setIdAjuda(null);
+      setAviso("Sua oferta de ajuda foi enviada ao responsável pelo reporte.");
+    } catch (problema) {
+      setErroOferta(problema.message);
+    } finally {
+      setEnviandoOferta(false);
+    }
+  };
+
+  const iniciarConversaAjuda = async (ofertaId) => {
+    if (!exigirLogin() || iniciandoConversaId !== null) return;
+
+    setIniciandoConversaId(ofertaId);
+    setErroConversaAjuda("");
+    try {
+      const mensagens = await listarMensagensConversaAjuda(ofertaId);
+      setMensagensConversaInicial(mensagens);
+      marcarMensagensLidas(ofertaId);
+      setIdOfertas(null);
+      setMostrarSelecaoConversa(false);
+      setIdConversaAjuda(ofertaId);
+    } catch (problema) {
+      if (idOfertas !== null) {
+        setErroConversaAjuda(problema.message);
+      } else {
+        setErroAcao(problema.message);
+      }
+    } finally {
+      setIniciandoConversaId(null);
+    }
+  };
+
+  const tratarFalhaAcessoConversa = useCallback((mensagem) => {
+    setIdConversaAjuda(null);
+    setMensagensConversaInicial([]);
+    setErroAcao(mensagem);
+  }, []);
+
+  const fecharConversaAjuda = useCallback(() => {
+    setIdConversaAjuda(null);
+    setMensagensConversaInicial([]);
+  }, []);
 
   const mudarStatus = async (reporte, novoStatus) => {
     if (!exigirLogin()) return;
@@ -472,6 +571,69 @@ export default function Reportes({ somenteMeus = false }) {
             {erroAcao}
           </Alerta>
 
+          <Alerta tipo="erro">
+            {erroMensagensNaoLidas
+              ? `Não foi possível verificar novas mensagens: ${erroMensagensNaoLidas}`
+              : ""}
+          </Alerta>
+
+          {somenteMeus && (
+            <Alerta tipo="erro">
+              {erroOfertas
+                ? `Não foi possível atualizar as ofertas de ajuda: ${erroOfertas}`
+                : ""}
+            </Alerta>
+          )}
+
+          {somenteMeus && conversasNaoVisualizadas.length > 0 && (
+            <section
+              className="reportes__mensagens-pendentes"
+              aria-labelledby="reportes-mensagens-pendentes-titulo"
+            >
+              <div className="reportes__mensagens-pendentes-cabecalho">
+                <div>
+                  <h3 id="reportes-mensagens-pendentes-titulo">
+                    Mensagens privadas não visualizadas
+                  </h3>
+                  <p>
+                    Você tem {totalMensagensNaoVisualizadas} mensagem(ns) nova(s)
+                    {" "}em {conversasNaoVisualizadas.length} conversa(s).
+                  </p>
+                </div>
+                <span
+                  className="reportes__mensagens-pendentes-total"
+                  aria-label={`${totalMensagensNaoVisualizadas} mensagens não visualizadas`}
+                >
+                  {totalMensagensNaoVisualizadas}
+                </span>
+              </div>
+              <ul className="reportes__mensagens-pendentes-lista">
+                {conversasNaoVisualizadas.map((conversa) => (
+                  <li key={conversa.id}>
+                    <span className="reportes__mensagens-pendentes-detalhe">
+                      <strong>{conversa.nome}</strong>
+                      <span>
+                        {conversa.tituloReporte} · {conversa.mensagensNaoLidas}
+                        {" "}mensagem(ns) nova(s)
+                      </span>
+                    </span>
+                    <Botao
+                      variante="secundario"
+                      tamanho="pequeno"
+                      icone={<MessageCircle size={16} aria-hidden="true" />}
+                      desabilitado={iniciandoConversaId !== null}
+                      onClick={() => iniciarConversaAjuda(conversa.id)}
+                    >
+                      {iniciandoConversaId === conversa.id
+                        ? "Abrindo..."
+                        : "Abrir chat"}
+                    </Botao>
+                  </li>
+                ))}
+              </ul>
+            </section>
+          )}
+
           {/* Os 3 estados de qualquer listagem: carregando, erro, conteúdo. */}
           {carregando ? (
             <Carregando texto="Carregando reportes..." />
@@ -510,6 +672,27 @@ export default function Reportes({ somenteMeus = false }) {
                       }
                     }}
                     onMudarStatus={(novo) => mudarStatus(reporte, novo)}
+                    onConversarOferta={
+                      reporte.minhaOfertaId
+                        ? () => iniciarConversaAjuda(reporte.minhaOfertaId)
+                        : undefined
+                    }
+                    onVerMensagensNaoLidas={
+                      reporte.souDono && reporte.ofertas?.length > 0
+                        ? () => {
+                            setMostrarSelecaoConversa(true);
+                            setIdOfertas(reporte.id);
+                          }
+                        : undefined
+                    }
+                    onVerOfertas={
+                      somenteMeus
+                        ? () => {
+                            setMostrarSelecaoConversa(false);
+                            setIdOfertas(reporte.id);
+                          }
+                        : undefined
+                    }
                   />
                 ))}
               </Grid>
@@ -562,8 +745,106 @@ export default function Reportes({ somenteMeus = false }) {
       {reporteAjuda && (
         <ModalAjuda
           reporte={reporteAjuda}
+          nomeUsuario={usuario?.nome ?? ""}
           onFechar={() => setIdAjuda(null)}
-          onEnviar={enviarOferta}
+          onEnviar={enviarOfertaAjuda}
+          formulario={formularioAjuda}
+          erros={errosAjuda}
+          erroGeral={erroOferta}
+          enviando={enviandoOferta}
+          onAlterarCampo={alterarCampoAjuda}
+          onLimparErroGeral={() => setErroOferta("")}
+        />
+      )}
+
+      {reporteOfertas && (
+        <Modal
+          aberto
+          onFechar={() => {
+            setIdOfertas(null);
+            setMostrarSelecaoConversa(false);
+          }}
+          titulo={`${mostrarSelecaoConversa ? "Escolha uma conversa" : "Quem quer ajudar"}: ${reporteOfertas.titulo}`}
+          largura="600px"
+        >
+          {(reporteOfertas.ofertas ?? []).length === 0 ? (
+            <p className="reportes__ofertas-vazio">
+              Ainda não há ofertas de ajuda para este reporte.
+            </p>
+          ) : (
+            <div className="reportes__ofertas">
+              {mostrarSelecaoConversa && (
+                <p className="reportes__ofertas-vazio">
+                  Escolha com qual pessoa deseja conversar. Cada conversa é privada.
+                </p>
+              )}
+              <Alerta
+                tipo="erro"
+                onFechar={() => setErroConversaAjuda("")}
+              >
+                {erroConversaAjuda}
+              </Alerta>
+              {(reporteOfertas.ofertas ?? []).map((oferta) => (
+                <article className="reportes__oferta" key={oferta.id}>
+                  <div className="reportes__oferta-cabecalho">
+                    <span className="reportes__oferta-icone">
+                      <HandHeart size={18} aria-hidden="true" />
+                    </span>
+                    <div>
+                      <h3>{oferta.nome} quer ajudar</h3>
+                      {oferta.data && (
+                        <time dateTime={oferta.data}>
+                          {formatarDataHora(oferta.data)}
+                        </time>
+                      )}
+                    </div>
+                  </div>
+                  {oferta.mensagem && <p>{oferta.mensagem}</p>}
+                  <a
+                    className="reportes__oferta-telefone"
+                    href={`tel:${oferta.telefone.replace(/[^\d+]/g, "")}`}
+                  >
+                    <Phone size={15} aria-hidden="true" />
+                    {oferta.telefone}
+                  </a>
+                  <Botao
+                    variante="secundario"
+                    tamanho="pequeno"
+                    desabilitado={iniciandoConversaId !== null}
+                    icone={<MessageCircle size={16} aria-hidden="true" />}
+                    onClick={() => iniciarConversaAjuda(oferta.id)}
+                  >
+                    {iniciandoConversaId === oferta.id
+                      ? "Verificando acesso..."
+                      : oferta.mensagensNaoLidas > 0
+                        ? "Voltar ao chat"
+                        : "Iniciar chat"}
+                    {iniciandoConversaId !== oferta.id &&
+                      oferta.mensagensNaoLidas > 0 && (
+                        <span
+                          className="reportes__mensagens-privadas-contagem"
+                          aria-label={`${oferta.mensagensNaoLidas} mensagens não lidas`}
+                          title={`${oferta.mensagensNaoLidas} mensagens não lidas`}
+                        >
+                          {oferta.mensagensNaoLidas}
+                        </span>
+                      )}
+                  </Botao>
+                </article>
+              ))}
+            </div>
+          )}
+        </Modal>
+      )}
+
+      {idConversaAjuda !== null && ofertaConversaAjuda && (
+        <ModalConversaAjuda
+          key={ofertaConversaAjuda.id}
+          oferta={ofertaConversaAjuda}
+          usuario={usuario}
+          onFechar={fecharConversaAjuda}
+          onFalhaAcesso={tratarFalhaAcessoConversa}
+          mensagensIniciais={mensagensConversaInicial}
         />
       )}
 
