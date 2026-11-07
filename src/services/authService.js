@@ -55,6 +55,59 @@ export function cadastrar(nome, email, senha) {
   });
 }
 
+async function lerMensagemErro(resposta, padrao) {
+  try {
+    const corpo = await resposta.json();
+    return corpo?.validacoes?.[0]?.mensagem || corpo?.mensagem || padrao;
+  } catch {
+    return padrao;
+  }
+}
+
+export async function solicitarRecuperacaoSenha(email) {
+  if (!email) {
+    throw new Error("Informe seu e-mail.");
+  }
+
+  const resposta = await requisicaoApi("auth/esqueci-senha", {
+    method: "POST",
+    semAutenticacao: true,
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ email: email.trim() }),
+  });
+
+  if (!resposta.ok) {
+    throw new Error(
+      await lerMensagemErro(
+        resposta,
+        `Não foi possível enviar o código (${resposta.status}).`,
+      ),
+    );
+  }
+}
+
+export async function redefinirSenha(email, codigo, novaSenha) {
+  if (!email || !codigo || !novaSenha) {
+    throw new Error("Preencha todos os campos para continuar.");
+  }
+
+  const resposta = await requisicaoApi("auth/redefinir-senha", {
+    method: "POST",
+    semAutenticacao: true,
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ email: email.trim(), codigo: codigo.trim(), novaSenha }),
+  });
+
+  if (!resposta.ok) {
+    throw new Error(
+      await lerMensagemErro(
+        resposta,
+        `Não foi possível redefinir a senha (${resposta.status}).`,
+      ),
+    );
+  }
+}
+
 export function lerUsuarioSalvo() {
   try {
     const token = localStorage.getItem(TOKEN_KEY);
