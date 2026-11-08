@@ -17,6 +17,7 @@ import {
   ModalAjuda,
   ModalChat,
   ModalConversaAjuda,
+  ModalStatusReporte,
   PainelEstatisticas,
   PainelFiltros,
 } from "../../index";
@@ -24,19 +25,11 @@ import { useAuth, useRelatorios } from "../../../hooks";
 import { listarMensagensNaoVisualizadas } from "../../../hooks/useRelatorios";
 import { buscarEnderecoPorCep } from "../../../services/cepService";
 import { filtrarReportes } from "../../../utils/filtrar";
-import { lerImagemComoTexto } from "../../utils/formatar";
 import { CAMINHOS } from "../../../rotas/caminhos";
-import { formatarDataHora } from "../../utils/formatar";
+import { status as infoStatus, tipoMudancaStatus } from "../../../config/listas";
+import { formatarDataHora, prepararImagens } from "../../utils/formatar";
 import { listarMensagensConversaAjuda } from "../../../services/relatoriosService";
 import { resolverOfertaConversaAjuda } from "../../../utils/resolverOfertaConversaAjuda";
-
-const TAMANHO_MAXIMO_IMAGEM = 5 * 1024 * 1024;
-const TIPOS_IMAGEM_SUPORTADOS = [
-  "image/jpeg",
-  "image/png",
-  "image/gif",
-  "image/webp",
-];
 
 /* Como o formulário começa quando é um cadastro novo. */
 const FORMULARIO_VAZIO = {
@@ -153,6 +146,9 @@ export default function Reportes({ somenteMeus = false }) {
   const [enviandoOferta, setEnviandoOferta] = useState(false);
   const [paraExcluir, setParaExcluir] = useState(null);
   const [excluindo, setExcluindo] = useState(false);
+  const [mudancaStatus, setMudancaStatus] = useState(null);
+  const [mudandoStatus, setMudandoStatus] = useState(false);
+  const [erroStatus, setErroStatus] = useState("");
 
   const [aviso, setAviso] = useState("");
   const [erroAcao, setErroAcao] = useState("");
@@ -296,41 +292,19 @@ export default function Reportes({ somenteMeus = false }) {
     evento.target.value = "";
     if (arquivos.length === 0) return;
 
-    const imagensAtuais = formulario.imagens ?? [];
-    const espacoDisponivel = 5 - imagensAtuais.length;
-    const imagensValidas = [];
-    const errosArquivo = [];
-
-    arquivos.forEach((arquivo) => {
-      if (!TIPOS_IMAGEM_SUPORTADOS.includes(arquivo.type)) {
-        errosArquivo.push(`${arquivo.name}: formato não suportado.`);
-      } else if (arquivo.size > TAMANHO_MAXIMO_IMAGEM) {
-        errosArquivo.push(`${arquivo.name}: tamanho máximo de 5 MB.`);
-      } else if (imagensValidas.length < espacoDisponivel) {
-        imagensValidas.push(arquivo);
-      } else {
-        errosArquivo.push("Cada reporte pode ter no máximo 5 imagens.");
-      }
-    });
-
-    if (imagensValidas.length === 0) {
-      setErroForm(errosArquivo.join(" "));
-      return;
-    }
-
     setErroForm("");
     try {
-      const imagens = await Promise.all(
-        imagensValidas.map((arquivo) => lerImagemComoTexto(arquivo)),
+      const { imagens, erros: errosArquivo } = await prepararImagens(
+        arquivos,
+        formulario.imagens?.length ?? 0,
       );
-      if (imagens.some((imagem) => typeof imagem !== "string")) {
-        throw new Error("Não foi possível converter uma das imagens.");
+      if (imagens.length > 0) {
+        setFormulario((atual) => ({
+          ...atual,
+          imagens: [...(atual.imagens ?? []), ...imagens],
+        }));
+        setErros((atual) => ({ ...atual, imagens: "" }));
       }
-      setFormulario((atual) => ({
-        ...atual,
-        imagens: [...(atual.imagens ?? []), ...imagens],
-      }));
-      setErros((atual) => ({ ...atual, imagens: "" }));
       if (errosArquivo.length > 0) setErroForm(errosArquivo.join(" "));
     } catch (problema) {
       setErroForm(problema.message);
@@ -511,14 +485,39 @@ export default function Reportes({ somenteMeus = false }) {
     setMensagensConversaInicial([]);
   }, []);
 
+  /* Trocas que exigem foto, justificativa ou confirmação passam pelo modal;
+     o status só muda depois que o backend aceitar. */
   const mudarStatus = async (reporte, novoStatus) => {
     if (!exigirLogin()) return;
     setErroAcao("");
+
+    if (tipoMudancaStatus(reporte.status, novoStatus)) {
+      setErroStatus("");
+      setMudancaStatus({ reporte, novoStatus });
+      return;
+    }
 
     try {
       await alterarStatus(reporte, novoStatus);
     } catch (problema) {
       setErroAcao(problema.message);
+    }
+  };
+
+  const confirmarMudancaStatus = async (detalhes) => {
+    if (!mudancaStatus) return;
+    const { reporte, novoStatus } = mudancaStatus;
+    setMudandoStatus(true);
+    setErroStatus("");
+
+    try {
+      await alterarStatus(reporte, novoStatus, detalhes);
+      setMudancaStatus(null);
+      setAviso(`"${reporte.titulo}" agora está ${infoStatus(novoStatus).label.toLowerCase()}.`);
+    } catch (problema) {
+      setErroStatus(problema.message);
+    } finally {
+      setMudandoStatus(false);
     }
   };
 
@@ -845,6 +844,19 @@ export default function Reportes({ somenteMeus = false }) {
           onFechar={fecharConversaAjuda}
           onFalhaAcesso={tratarFalhaAcessoConversa}
           mensagensIniciais={mensagensConversaInicial}
+        />
+      )}
+
+      {mudancaStatus && (
+        <ModalStatusReporte
+          key={`${mudancaStatus.reporte.id}-${mudancaStatus.novoStatus}`}
+          reporte={mudancaStatus.reporte}
+          novoStatus={mudancaStatus.novoStatus}
+          onFechar={() => setMudancaStatus(null)}
+          onConfirmar={confirmarMudancaStatus}
+          enviando={mudandoStatus}
+          erroGeral={erroStatus}
+          onLimparErroGeral={() => setErroStatus("")}
         />
       )}
 

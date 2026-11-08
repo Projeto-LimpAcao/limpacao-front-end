@@ -34,6 +34,44 @@ export function lerImagemComoTexto(arquivo) {
   });
 }
 
+export const LIMITE_IMAGENS = 5;
+const TAMANHO_MAXIMO_IMAGEM = 5 * 1024 * 1024;
+const TIPOS_IMAGEM_SUPORTADOS = [
+  "image/jpeg",
+  "image/png",
+  "image/gif",
+  "image/webp",
+];
+
+/**
+ * Valida os arquivos escolhidos (formato, tamanho e limite) e converte os
+ * válidos em data URL. Devolve as imagens e os avisos dos que ficaram de fora.
+ */
+export async function prepararImagens(arquivos, quantidadeAtual = 0) {
+  const espacoDisponivel = LIMITE_IMAGENS - quantidadeAtual;
+  const validos = [];
+  const erros = [];
+
+  arquivos.forEach((arquivo) => {
+    if (!TIPOS_IMAGEM_SUPORTADOS.includes(arquivo.type)) {
+      erros.push(`${arquivo.name}: formato não suportado.`);
+    } else if (arquivo.size > TAMANHO_MAXIMO_IMAGEM) {
+      erros.push(`${arquivo.name}: tamanho máximo de 5 MB.`);
+    } else if (validos.length < espacoDisponivel) {
+      validos.push(arquivo);
+    } else {
+      erros.push(`É possível anexar no máximo ${LIMITE_IMAGENS} imagens.`);
+    }
+  });
+
+  const imagens = await Promise.all(validos.map(lerImagemComoTexto));
+  if (imagens.some((imagem) => typeof imagem !== "string")) {
+    throw new Error("Não foi possível converter uma das imagens.");
+  }
+
+  return { imagens, erros: [...new Set(erros)] };
+}
+
 export function ehEmailValido(email) {
   return typeof email === "string" && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim());
 }

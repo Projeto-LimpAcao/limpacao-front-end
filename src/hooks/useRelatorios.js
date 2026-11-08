@@ -216,10 +216,11 @@ export function useRelatorios(usuarioAutenticado = false, exigirMeus = false) {
     setRelatorios((atual) => atual.filter((reporte) => reporte.id !== id));
   };
 
-  const alterarStatus = async (reporte, novoStatus) => {
+  const alterarStatus = async (reporte, novoStatus, detalhes = {}) => {
     const atualizado = await relatoriosService.atualizarStatusReporte(
       reporte.id,
       novoStatus,
+      detalhes,
     );
 
     setRelatorios((atual) =>

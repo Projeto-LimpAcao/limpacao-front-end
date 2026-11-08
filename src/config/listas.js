@@ -10,6 +10,21 @@ export const STATUS = [
   { valor: "resolved", label: "Resolvido" },
 ];
 
+/**
+ * O que cada troca de status exige antes de ser enviada:
+ * - "resolver": qualquer status → Resolvido (foto de conclusão obrigatória);
+ * - "reabrir": saindo de Resolvido (justificativa obrigatória);
+ * - "confirmar": Pendente → Em andamento (apenas confirmação);
+ * - null: troca direta, sem modal.
+ */
+export function tipoMudancaStatus(statusAtual, novoStatus) {
+  if (statusAtual === novoStatus) return null;
+  if (novoStatus === "resolved") return "resolver";
+  if (statusAtual === "resolved") return "reabrir";
+  if (statusAtual === "pending" && novoStatus === "in-progress") return "confirmar";
+  return null;
+}
+
 export const FILTRO_URGENCIA = [
   { valor: "todas", label: "Todas" },
   ...URGENCIAS,
