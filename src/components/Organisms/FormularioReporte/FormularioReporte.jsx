@@ -1,11 +1,12 @@
 import { useRef } from "react";
-import { ImagePlus, LoaderCircle, Search, Trash2 } from "lucide-react";
+import { LoaderCircle, Search } from "lucide-react";
 
 import "./FormularioReporte.css";
 import Input from "../../atomos/InputTexto/Inputexto";
 import Select from "../../atomos/Selecao/Selecao";
 import Textarea from "../../atomos/Textarea/Textarea";
 import Botao from "../../atomos/Botao/Botao";
+import CampoImagens from "../../moleculas/CampoImagens/CampoImagens";
 import RadioGrupo from "../../moleculas/RadioGrupo/RadioGrupo";
 import Alerta from "../../moleculas/Alerta/Alerta";
 import { URGENCIAS } from "../../../config/listas";
@@ -21,7 +22,6 @@ export default function FormularioReporte({
   buscandoCep = false,
   erroCep = "",
 }) {
-  const entradaArquivo = useRef(null);
   const campoNumero = useRef(null);
 
   const alterarCep = (evento) => {
@@ -183,60 +183,13 @@ export default function FormularioReporte({
         </div>
       </div>
 
-      {/* ---- Foto ---- */}
-      <div className="form-reporte__foto">
-        <span className="form-reporte__foto-label">Foto *</span>
-
-        <div className="form-reporte__foto-area">
-          <input
-            type="file"
-            accept="image/jpeg,image/png,image/gif,image/webp"
-            multiple
-            onChange={onArquivoSelecionado}
-            className="form-reporte__arquivo"
-            ref={entradaArquivo}
-          />
-
-          <Botao
-            variante="secundario"
-            icone={<ImagePlus size={16} />}
-            onClick={() => {
-              entradaArquivo.current.value = "";
-              entradaArquivo.current?.click();
-            }}
-            desabilitado={(formulario.imagens?.length ?? 0) >= 5}
-          >
-            Adicionar imagens ({formulario.imagens?.length ?? 0}/5)
-          </Botao>
-
-          {(formulario.imagens?.length ?? 0) > 0 ? (
-            <div className="form-reporte__previas">
-              {formulario.imagens.map((imagem, indice) => (
-                <div className="form-reporte__previa" key={`${indice}-${imagem.slice(-24)}`}>
-                  <img src={imagem} alt={`Prévia da imagem ${indice + 1}`} />
-                  <button
-                    type="button"
-                    className="form-reporte__remover"
-                    onClick={() => onRemoverImagem(indice)}
-                    aria-label={`Remover imagem ${indice + 1}`}
-                  >
-                    <Trash2 size={14} />
-                  </button>
-                </div>
-              ))}
-            </div>
-          ) : null}
-          <p className="form-reporte__dica">
-            Adicione pelo menos uma imagem (até 5 no total; JPEG, PNG, GIF ou
-            WebP; até 5 MB cada).
-          </p>
-          {erros.imagens && (
-            <span className="select-mensagem-erro" role="alert">
-              {erros.imagens}
-            </span>
-          )}
-        </div>
-      </div>
+      <CampoImagens
+        obrigatorio
+        imagens={formulario.imagens ?? []}
+        onArquivoSelecionado={onArquivoSelecionado}
+        onRemoverImagem={onRemoverImagem}
+        erro={erros.imagens}
+      />
     </div>
   );
 }

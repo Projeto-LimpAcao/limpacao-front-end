@@ -9,6 +9,7 @@ export { default as FormularioReporte } from "./Organisms/FormularioReporte/Form
 export { default as ModalAjuda } from "./Organisms/ModalAjuda/ModalAjuda";
 export { default as ModalChat } from "./Organisms/ModalChat/ModalChat";
 export { default as ModalConversaAjuda } from "./Organisms/ModalConversaAjuda/ModalConversaAjuda";
+export { default as ModalStatusReporte } from "./Organisms/ModalStatusReporte/ModalStatusReporte";
 export { default as PainelEstatisticas } from "./Organisms/PainelEstatisticas/PainelEstatisticas";
 export { default as PainelFiltros } from "./Organisms/PainelFiltros/PainelFiltros";
 export { default as Container } from "./atomos/Container/Container";

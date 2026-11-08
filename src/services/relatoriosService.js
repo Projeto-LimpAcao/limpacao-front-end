@@ -46,10 +46,32 @@ async function validarResposta(resposta, recurso = "reportes") {
     erro.status = resposta.status;
     throw erro;
   }
+  if (resposta.status === 400) {
+    /* Regras de negócio voltam com a explicação em "mensagem". */
+    const dados = await resposta.json().catch(() => null);
+    if (dados?.mensagem) {
+      const erro = new Error(dados.mensagem);
+      erro.status = resposta.status;
+      throw erro;
+    }
+  }
 
   throw new Error(
     `Não foi possível acessar ${recurso} (${resposta.status}).`,
   );
+}
+
+/* As imagens chegam do backend como texto JSON: '["data:image/...", ...]'. */
+function lerListaImagens(valor) {
+  if (typeof valor !== "string" || !valor) return [];
+  try {
+    const dados = JSON.parse(valor);
+    return Array.isArray(dados)
+      ? dados.filter((imagem) => typeof imagem === "string" && imagem)
+      : [valor];
+  } catch {
+    return [valor];
+  }
 }
 
 function mapearReporte(
@@ -60,19 +82,12 @@ function mapearReporte(
   minhaOferta = null,
   participando = false,
 ) {
-  let imagens = [];
-  if (Array.isArray(reporte.imagens)) {
-    imagens = reporte.imagens.filter((imagem) => typeof imagem === "string" && imagem);
-  } else if (typeof reporte.imagem === "string" && reporte.imagem) {
-    try {
-      const dados = JSON.parse(reporte.imagem);
-      imagens = Array.isArray(dados)
-        ? dados.filter((imagem) => typeof imagem === "string" && imagem)
-        : [reporte.imagem];
-    } catch {
-      imagens = [reporte.imagem];
-    }
-  }
+  const imagens = Array.isArray(reporte.imagens)
+    ? reporte.imagens.filter((imagem) => typeof imagem === "string" && imagem)
+    : lerListaImagens(reporte.imagem);
+  const imagensConclusao = Array.isArray(reporte.imagensConclusao)
+    ? reporte.imagensConclusao
+    : lerListaImagens(reporte.imagemConclusao);
 
   return {
     ...reporte,
@@ -81,6 +96,7 @@ function mapearReporte(
     data: reporte.criadoEm ?? reporte.data,
     imagem: imagens[0] ?? "",
     imagens,
+    imagensConclusao,
     participantes: reporte.participantes ?? 0,
     ajudantes: reporte.ajudantes ?? 0,
     mensagens: [],
@@ -252,16 +268,26 @@ export async function excluirReporte(id) {
   await validarResposta(resposta);
 }
 
-export async function atualizarStatusReporte(id, status) {
+export async function atualizarStatusReporte(
+  id,
+  status,
+  { imagensConclusao, justificativa } = {},
+) {
   const statusApi = STATUS_API[status];
   if (!statusApi) {
     throw new Error("Status de reporte inválido.");
   }
 
+  const corpo = { status: statusApi };
+  if (imagensConclusao?.length) {
+    corpo.imagemConclusao = JSON.stringify(imagensConclusao);
+  }
+  if (justificativa) corpo.justificativa = justificativa;
+
   const resposta = await requisicaoApi(`relatorios/${id}`, {
     method: "PUT",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ status: statusApi }),
+    body: JSON.stringify(corpo),
   });
   await validarResposta(resposta);
   return mapearReporte(await resposta.json(), true);

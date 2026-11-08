@@ -179,6 +179,22 @@
   line-height: var(--altura-linha-solta);
 }
 
+.card-reporte__reabertura {
+  display: flex;
+  gap: var(--espaco-xs);
+  padding: var(--espaco-xs) var(--espaco-sm);
+  border-radius: var(--raio-sm);
+  background: var(--superficie-suave);
+  color: var(--texto-secundario);
+  font-size: var(--texto-xs);
+}
+
+.card-reporte__reabertura svg {
+  flex-shrink: 0;
+  margin-top: 2px;
+  color: var(--cor-aviso);
+}
+
 /* ---- Rodapé com autor e contadores ---- */
 
 .card-reporte__rodape {
@@ -255,6 +271,10 @@
   cursor: progress;
   opacity: 0.6;
   text-decoration: none;
+}
+
+.card-reporte__acao--conclusao {
+  color: var(--cor-sucesso);
 }
 
 .card-reporte__acao--ativa {
