@@ -1,4 +1,4 @@
-import { requisicaoApi } from "./api";
+import { requisicaoApi, urlArquivo } from "./api";
 import { listarContagensMensagens } from "./chatService";
 
 const URGENCIA_API = {
@@ -61,17 +61,20 @@ async function validarResposta(resposta, recurso = "reportes") {
   );
 }
 
-/* As imagens chegam do backend como texto JSON: '["data:image/...", ...]'. */
+/* As imagens chegam do backend como texto JSON com o caminho de cada
+   arquivo gravado em disco: '["/api/arquivos/3f2c....png", ...]'. */
 function lerListaImagens(valor) {
   if (typeof valor !== "string" || !valor) return [];
+  let imagens;
   try {
     const dados = JSON.parse(valor);
-    return Array.isArray(dados)
-      ? dados.filter((imagem) => typeof imagem === "string" && imagem)
-      : [valor];
+    imagens = Array.isArray(dados) ? dados : [valor];
   } catch {
-    return [valor];
+    imagens = [valor];
   }
+  return imagens
+    .filter((imagem) => typeof imagem === "string" && imagem)
+    .map(urlArquivo);
 }
 
 function mapearReporte(
