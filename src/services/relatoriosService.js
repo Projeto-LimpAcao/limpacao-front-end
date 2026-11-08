@@ -58,6 +58,7 @@ function mapearReporte(
   quantidadeMensagens = 0,
   ofertas = [],
   minhaOferta = null,
+  participando = false,
 ) {
   let imagens = [];
   if (Array.isArray(reporte.imagens)) {
@@ -89,7 +90,7 @@ function mapearReporte(
     minhaOfertaId: minhaOferta?.id ?? null,
     minhaParticipacao: {
       ajudando: Boolean(minhaOferta),
-      participando: false,
+      participando,
     },
   };
 }
@@ -124,11 +125,15 @@ export async function listarReportes(
   let meus = [];
   let ofertas = [];
   let minhasOfertas = [];
+  let meusMutiroes = [];
   if (incluirMeus) {
     const respostaMeus = await requisicaoApi("relatorios/meus");
     if (respostaMeus.ok) {
       meus = await respostaMeus.json();
-      minhasOfertas = await listarOfertasAjudaEnviadas();
+      [minhasOfertas, meusMutiroes] = await Promise.all([
+        listarOfertasAjudaEnviadas(),
+        listarMutiroesParticipando(),
+      ]);
       if (meus.length > 0) {
         ofertas = await listarOfertasAjudaMeus();
       }
@@ -138,6 +143,7 @@ export async function listarReportes(
   }
 
   const idsMeus = new Set(meus.map((reporte) => reporte.id));
+  const idsMutiroes = new Set(meusMutiroes);
 
   return todos.map((reporte) =>
     mapearReporte(
@@ -148,8 +154,25 @@ export async function listarReportes(
         .filter((oferta) => oferta.relatorioId === reporte.id)
         .map((oferta) => ({ ...oferta, data: oferta.criadoEm })),
       minhasOfertas.find((oferta) => oferta.relatorioId === reporte.id) ?? null,
+      idsMutiroes.has(reporte.id),
     ),
   );
+}
+
+/* Ids dos reportes em cujo mutirão o usuário logado está participando. */
+export async function listarMutiroesParticipando() {
+  const resposta = await requisicaoApi("participacoes/minhas");
+  await validarResposta(resposta, "suas participações em mutirões");
+  return resposta.json();
+}
+
+/* Entra no mutirão (devolve true) ou sai dele (devolve false). */
+export async function alternarParticipacaoMutirao(relatorioId) {
+  const resposta = await requisicaoApi(`relatorios/${relatorioId}/participacoes`, {
+    method: "POST",
+  });
+  await validarResposta(resposta, "a participação no mutirão");
+  return resposta.status !== 204;
 }
 
 export async function listarOfertasAjudaMeus() {
