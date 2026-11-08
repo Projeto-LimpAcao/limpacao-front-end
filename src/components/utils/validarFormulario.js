@@ -31,7 +31,35 @@ export const validarLogin = ({ email, senha }) => {
   return erros;
 };
 
-export const validarCadastro = ({ nome, email, senha, confirmarSenha }) => {
+export const validarRecuperacaoSenha = ({ email }) => {
+  const erros = {};
+
+  if (!emailValido(email)) {
+    erros.email = "Digite um e-mail válido.";
+  }
+
+  return erros;
+};
+
+export const validarRedefinicaoSenha = ({ codigo, senha, confirmarSenha }) => {
+  const erros = {};
+
+  if (!/^\d{6}$/.test(String(codigo ?? ""))) {
+    erros.codigo = "O código deve ter 6 dígitos.";
+  }
+
+  if (String(senha ?? "").length < 6) {
+    erros.senha = "A senha precisa ter pelo menos 6 caracteres.";
+  }
+
+  if (String(senha ?? "") !== String(confirmarSenha ?? "")) {
+    erros.confirmarSenha = "As senhas não coincidem.";
+  }
+
+  return erros;
+};
+
+export const validarCadastro =({ nome, email, senha, confirmarSenha }) => {
   const erros = {};
 
   if (!campoPreenchido(nome)) {

@@ -146,6 +146,7 @@ export default function Reportes({ somenteMeus = false }) {
   const [enviandoOferta, setEnviandoOferta] = useState(false);
   const [paraExcluir, setParaExcluir] = useState(null);
   const [excluindo, setExcluindo] = useState(false);
+  const [participacaoPendenteId, setParticipacaoPendenteId] = useState(null);
   const [mudancaStatus, setMudancaStatus] = useState(null);
   const [mudandoStatus, setMudandoStatus] = useState(false);
   const [erroStatus, setErroStatus] = useState("");
@@ -485,6 +486,25 @@ export default function Reportes({ somenteMeus = false }) {
     setMensagensConversaInicial([]);
   }, []);
 
+  const participarMutirao = async (reporte) => {
+    if (!exigirLogin() || participacaoPendenteId !== null) return;
+    setParticipacaoPendenteId(reporte.id);
+    setErroAcao("");
+
+    try {
+      const participando = await alternarParticipacao(reporte.id);
+      setAviso(
+        participando
+          ? `Você confirmou presença no mutirão de "${reporte.titulo}".`
+          : `Você saiu do mutirão de "${reporte.titulo}".`,
+      );
+    } catch (problema) {
+      setErroAcao(problema.message);
+    } finally {
+      setParticipacaoPendenteId(null);
+    }
+  };
+
   /* Trocas que exigem foto, justificativa ou confirmação passam pelo modal;
      o status só muda depois que o backend aceitar. */
   const mudarStatus = async (reporte, novoStatus) => {
@@ -665,11 +685,8 @@ export default function Reportes({ somenteMeus = false }) {
                     onExcluir={() => setParaExcluir(reporte)}
                     onAbrirChat={() => abrirChat(reporte.id)}
                     onAjudar={() => aoClicarAjudar(reporte)}
-                    onParticipar={() => {
-                      if (exigirLogin()) {
-                        alternarParticipacao(reporte.id, "participando");
-                      }
-                    }}
+                    onParticipar={() => participarMutirao(reporte)}
+                    participandoCarregando={participacaoPendenteId === reporte.id}
                     onMudarStatus={(novo) => mudarStatus(reporte, novo)}
                     onConversarOferta={
                       reporte.minhaOfertaId

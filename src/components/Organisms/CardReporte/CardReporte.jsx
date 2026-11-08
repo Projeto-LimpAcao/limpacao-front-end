@@ -41,6 +41,7 @@ export default function CardReporte({
   onConversarOferta,
   onVerMensagensNaoLidas,
   estaLogado = false,
+  participandoCarregando = false,
 }) {
   /* null = fechada; "reporte" = fotos do problema; "conclusao" = fotos da limpeza. */
   const [galeria, setGaleria] = useState(null);
@@ -220,6 +221,8 @@ export default function CardReporte({
                       estouParticipando ? "card-reporte__acao--ativa" : ""
                     }`}
                     onClick={onParticipar}
+                    disabled={participandoCarregando}
+                    title={estouParticipando ? "Clique para sair do mutirão" : undefined}
                   >
                     <Users size={15} />
                     {estouParticipando ? "Participando" : "Quero participar"}

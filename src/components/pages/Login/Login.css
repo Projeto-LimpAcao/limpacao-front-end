@@ -223,6 +223,35 @@
   color: var(--cor-primaria);
 }
 
+.login__trocar:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.login__instrucao {
+  color: var(--texto-secundario);
+  font-size: var(--texto-sm);
+  line-height: 1.5;
+  text-align: center;
+  overflow-wrap: anywhere;
+}
+
+.login__esqueci {
+  align-self: flex-end;
+  border: none;
+  background: none;
+  padding: var(--espaco-xs) 0;
+  color: var(--cor-primaria);
+  font: inherit;
+  font-size: var(--texto-sm);
+  font-weight: var(--peso-semi);
+  cursor: pointer;
+}
+
+.login__esqueci:hover {
+  text-decoration: underline;
+}
+
 .login__rodape {
   color: var(--texto-secundario);
   font-size: var(--texto-xs);
