@@ -260,15 +260,17 @@
 
 .card-reporte__dono {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
-  gap: var(--espaco-md);
+  gap: var(--espaco-sm) var(--espaco-md);
   padding-top: var(--espaco-md);
   border-top: 1px solid var(--borda-padrao);
 }
 
 .card-reporte__dono-botoes {
   display: flex;
+  flex-shrink: 0;
   gap: var(--espaco-xs);
 }
 
@@ -330,10 +332,13 @@
   border-color: var(--cor-perigo);
 }
 
-/* O select de status não precisa ocupar a linha toda. */
+/* O select de status cresce no espaço livre e desce de linha quando não cabe. */
 .card-reporte__dono .select-container {
+  flex: 1 1 150px;
   width: auto;
-  min-width: 150px;
+  max-width: 220px;
+  min-width: 0;
+  margin-left: auto;
 }
 
 @media (max-width: 560px) {
@@ -365,15 +370,6 @@
     gap: var(--espaco-sm) var(--espaco-md);
   }
 
-  .card-reporte__dono {
-    flex-wrap: wrap;
-    gap: var(--espaco-sm);
-  }
-
-  .card-reporte__dono .select-container {
-    flex: 1 1 140px;
-    min-width: 0;
-  }
 
   .modal--imagem-reporte {
     width: 100vw;
