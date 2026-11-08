@@ -251,6 +251,12 @@
   text-decoration: underline;
 }
 
+.card-reporte__acao:disabled {
+  cursor: progress;
+  opacity: 0.6;
+  text-decoration: none;
+}
+
 .card-reporte__acao--ativa {
   color: var(--cor-primaria);
   font-weight: var(--peso-semi);

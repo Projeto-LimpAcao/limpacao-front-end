@@ -35,9 +35,13 @@ export function associarOfertasAjuda(reportes, ofertas) {
 
   return reportes.map((reporte) => {
     if (!reporte.souDono) return reporte;
+    const ofertasDoReporte = ofertasPorReporte.get(reporte.id) ?? [];
     return {
       ...reporte,
-      ofertas: ofertasPorReporte.get(reporte.id) ?? [],
+      ofertas: ofertasDoReporte,
+      /* Cada oferta é uma pessoa ajudando: o dono vê a contagem subir
+         junto com as ofertas que chegam. */
+      ajudantes: ofertasDoReporte.length,
     };
   });
 }
@@ -238,24 +242,33 @@ export function useRelatorios(usuarioAutenticado = false, exigirMeus = false) {
     );
   };
 
-  const alternarParticipacao = async (id, tipo) => {
+  /* A participação no mutirão é gravada no backend, então a contagem
+     aparece para todos os usuários, e não só para quem clicou. */
+  const alternarParticipacao = async (id) => {
+    if (!usuarioAutenticado) {
+      throw new Error("Entre na sua conta para participar do mutirão.");
+    }
+
+    const participando = await relatoriosService.alternarParticipacaoMutirao(id);
+
     setRelatorios((atual) =>
       atual.map((reporte) => {
         if (reporte.id !== id) return reporte;
-
-        const ativa = !reporte.minhaParticipacao?.[tipo];
+        if (Boolean(reporte.minhaParticipacao?.participando) === participando) {
+          return reporte;
+        }
 
         return {
           ...reporte,
           minhaParticipacao: {
-            ajudando: tipo === "ajudando" ? ativa : Boolean(reporte.minhaParticipacao?.ajudando),
-            participando: tipo === "participando" ? ativa : Boolean(reporte.minhaParticipacao?.participando),
+            ...reporte.minhaParticipacao,
+            participando,
           },
-          ajudantes: Math.max(0, reporte.ajudantes + (tipo === "ajudando" ? (ativa ? 1 : -1) : 0)),
-          participantes: Math.max(0, reporte.participantes + (tipo === "participando" ? (ativa ? 1 : -1) : 0)),
+          participantes: Math.max(0, reporte.participantes + (participando ? 1 : -1)),
         };
       }),
     );
+    return participando;
   };
 
   const carregarDetalhes = async (id) => {
@@ -348,6 +361,7 @@ export function useRelatorios(usuarioAutenticado = false, exigirMeus = false) {
                 { ...novaOferta, data: novaOferta.criadoEm },
               ],
               minhaOfertaId: novaOferta.id,
+              ajudantes: (reporte.ajudantes ?? 0) + 1,
               minhaParticipacao: {
                 ...reporte.minhaParticipacao,
                 ajudando: true,
