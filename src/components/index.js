@@ -6,6 +6,7 @@ export { default as DrawerLateral } from "./Organisms/DrawerLateral/DrawerLatera
 export { default as EstadoVazio } from "./Organisms/EstadoVazio/EstadoVazio";
 export { default as Footer } from "./Organisms/Footer/Footer";
 export { default as FormularioReporte } from "./Organisms/FormularioReporte/FormularioReporte";
+export { default as MapaReportes } from "./Organisms/MapaReportes/MapaReportes";
 export { default as ModalAjuda } from "./Organisms/ModalAjuda/ModalAjuda";
 export { default as ModalChat } from "./Organisms/ModalChat/ModalChat";
 export { default as ModalConversaAjuda } from "./Organisms/ModalConversaAjuda/ModalConversaAjuda";

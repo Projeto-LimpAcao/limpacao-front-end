@@ -37,8 +37,18 @@ export const MENU = [
   { label: "Início", caminho: "/", icone: null, privado: false },
   { label: "Trabalhos", caminho: "/trabalhos", icone: null, privado: false },
   { label: "Reportes", caminho: "/reportes", icone: null, privado: false },
+  { label: "Mapa", caminho: "/mapa", icone: null, privado: false },
   { label: "Perfil", caminho: "/perfil", icone: null, privado: true },
   { label: "Login", caminho: "/login", icone: null, privado: false },
 ];
 
 export const MOSTRAR_BOTAO_TEMA = true;
+
+/* Google Maps: a chave fica no .env.local (VITE_GOOGLE_MAPS_API_KEY), fora do Git.
+   O Map ID é necessário para os marcadores; "DEMO_MAP_ID" serve para desenvolvimento. */
+export const GOOGLE_MAPS = {
+  chave: import.meta.env.VITE_GOOGLE_MAPS_API_KEY ?? "",
+  mapId: import.meta.env.VITE_GOOGLE_MAPS_MAP_ID || "DEMO_MAP_ID",
+  centroPadrao: { lat: -27.5954, lng: -48.548 },
+  zoomPadrao: 12,
+};

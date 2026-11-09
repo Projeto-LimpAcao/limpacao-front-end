@@ -14,6 +14,7 @@ import {
   CardReporte,
   EstadoVazio,
   FormularioReporte,
+  MapaReportes,
   ModalAjuda,
   ModalChat,
   ModalConversaAjuda,
@@ -28,7 +29,12 @@ import { filtrarReportes } from "../../../utils/filtrar";
 import { CAMINHOS } from "../../../rotas/caminhos";
 import { status as infoStatus, tipoMudancaStatus } from "../../../config/listas";
 import { formatarDataHora, prepararImagens } from "../../utils/formatar";
-import { listarMensagensConversaAjuda } from "../../../services/relatoriosService";
+import {
+  buscarCoordenadas,
+  listarMensagensConversaAjuda,
+} from "../../../services/relatoriosService";
+import { GOOGLE_MAPS } from "../../../config/projeto";
+import { APIProvider } from "@vis.gl/react-google-maps";
 import { resolverOfertaConversaAjuda } from "../../../utils/resolverOfertaConversaAjuda";
 
 /* Como o formulário começa quando é um cadastro novo. */
@@ -84,7 +90,31 @@ function extrairReferencia(reporte) {
   return localizacao === endereco ? "" : localizacao;
 }
 
-export default function Reportes({ somenteMeus = false }) {
+/* Carrega o Google Maps (mapa e geocodificação) quando a chave está configurada. */
+export default function Reportes(props) {
+  const [erroMapa, setErroMapa] = useState("");
+  const pagina = <ConteudoReportes {...props} erroMapa={erroMapa} />;
+
+  if (!GOOGLE_MAPS.chave) return pagina;
+
+  return (
+    <APIProvider
+      apiKey={GOOGLE_MAPS.chave}
+      language="pt-BR"
+      region="BR"
+      onError={() =>
+        setErroMapa(
+          "Não foi possível carregar o Google Maps. Verifique a chave e as APIs liberadas no Google Cloud.",
+        )
+      }
+    >
+      {pagina}
+    </APIProvider>
+  );
+}
+
+function ConteudoReportes({ somenteMeus = false, visualizacao = "lista", erroMapa = "" }) {
+  const ehMapa = visualizacao === "mapa";
   const { usuario } = useAuth();
   const navegar = useNavigate();
   const local = useLocation();
@@ -363,17 +393,25 @@ export default function Reportes({ somenteMeus = false }) {
     setErroForm("");
 
     try {
+      /* Posição no mapa a partir do endereço; se não achar, salva sem ela. */
+      const coordenadas = await buscarCoordenadas(formulario);
       const formularioComLocalizacao = {
         ...formulario,
         localizacao: montarLocalizacao(formulario),
+        latitude: coordenadas?.latitude ?? null,
+        longitude: coordenadas?.longitude ?? null,
       };
+      const avisoMapa =
+        GOOGLE_MAPS.chave && !coordenadas
+          ? " O endereço não foi localizado, então ele não aparecerá no mapa."
+          : "";
 
       if (editandoId) {
         await atualizar(editandoId, formularioComLocalizacao);
-        setAviso("Reporte atualizado.");
+        setAviso(`Reporte atualizado.${avisoMapa}`);
       } else {
         await criar(formularioComLocalizacao);
-        setAviso("Reporte cadastrado. Obrigado por ajudar!");
+        setAviso(`Reporte cadastrado. Obrigado por ajudar!${avisoMapa}`);
       }
 
       setFormAberto(false);
@@ -541,6 +579,49 @@ export default function Reportes({ somenteMeus = false }) {
     }
   };
 
+  /* O mesmo card é usado na grade e no balão do mapa. */
+  const renderizarCard = (reporte) => (
+    <CardReporte
+      key={reporte.id}
+      reporte={reporte}
+      estaLogado={Boolean(usuario)}
+      onEditar={() => abrirEdicao(reporte)}
+      onExcluir={() => setParaExcluir(reporte)}
+      onAbrirChat={() => abrirChat(reporte.id)}
+      onAjudar={() => aoClicarAjudar(reporte)}
+      onParticipar={() => participarMutirao(reporte)}
+      participandoCarregando={participacaoPendenteId === reporte.id}
+      onMudarStatus={(novo) => mudarStatus(reporte, novo)}
+      onConversarOferta={
+        reporte.minhaOfertaId
+          ? () => iniciarConversaAjuda(reporte.minhaOfertaId)
+          : undefined
+      }
+      onVerMensagensNaoLidas={
+        reporte.souDono && reporte.ofertas?.length > 0
+          ? () => {
+              setMostrarSelecaoConversa(true);
+              setIdOfertas(reporte.id);
+            }
+          : undefined
+      }
+      onVerOfertas={
+        somenteMeus
+          ? () => {
+              setMostrarSelecaoConversa(false);
+              setIdOfertas(reporte.id);
+            }
+          : undefined
+      }
+    />
+  );
+
+  const naoResolvidos = lista.filter((reporte) => reporte.status !== "resolved");
+  const semLocalizacao = naoResolvidos.filter(
+    (reporte) =>
+      !Number.isFinite(reporte.latitude) || !Number.isFinite(reporte.longitude),
+  );
+
   /* ---------------- 3. Tela ---------------- */
 
   return (
@@ -558,12 +639,18 @@ export default function Reportes({ somenteMeus = false }) {
           <header className="reportes__cabecalho">
             <div className="reportes__cabecalho-texto">
               <h2 className="reportes__titulo">
-                {somenteMeus ? "Meus reportes" : "Reportes da comunidade"}
+                {ehMapa
+                  ? "Mapa de ocorrências"
+                  : somenteMeus
+                    ? "Meus reportes"
+                    : "Reportes da comunidade"}
               </h2>
               <p className="reportes__descricao">
-                {somenteMeus
-                  ? `Olá, ${usuario.nome}. Aqui estão os reportes que você criou — dá pra editar, mudar o status e excluir.`
-                  : "Veja os problemas ambientais reportados pelas comunidades e ofereça ajuda."}
+                {ehMapa
+                  ? "Veja onde estão os reportes ainda não resolvidos. Clique em um ponto para abrir o reporte."
+                  : somenteMeus
+                    ? `Olá, ${usuario.nome}. Aqui estão os reportes que você criou — dá pra editar, mudar o status e excluir.`
+                    : "Veja os problemas ambientais reportados pelas comunidades e ofereça ajuda."}
               </p>
             </div>
             {somenteMeus && (
@@ -658,7 +745,7 @@ export default function Reportes({ somenteMeus = false }) {
             <Carregando texto="Carregando reportes..." />
           ) : erro ? (
             <Alerta tipo="erro">{erro}</Alerta>
-          ) : lista.length === 0 ? (
+          ) : lista.length === 0 && !ehMapa ? (
             <EstadoVazio
               titulo={
                 somenteMeus
@@ -673,44 +760,28 @@ export default function Reportes({ somenteMeus = false }) {
               rotuloAcao="Criar um reporte"
               onAcao={abrirNovo}
             />
+          ) : ehMapa ? (
+            !GOOGLE_MAPS.chave ? (
+              <EstadoVazio
+                titulo="Mapa indisponível"
+                descricao="Configure a chave do Google Maps (VITE_GOOGLE_MAPS_API_KEY no arquivo .env.local) e reinicie o front-end."
+              />
+            ) : (
+              <>
+                <Alerta tipo="erro">{erroMapa}</Alerta>
+                <MapaReportes reportes={lista} renderizarCard={renderizarCard} />
+                <p className="reportes__total">
+                  {naoResolvidos.length - semLocalizacao.length} reporte(s) não
+                  resolvido(s) no mapa
+                  {semLocalizacao.length > 0 &&
+                    ` · ${semLocalizacao.length} ainda sem localização (edite o reporte e salve para localizar o endereço)`}
+                </p>
+              </>
+            )
           ) : (
             <>
               <Grid colunas={3} minimo="300px">
-                {lista.map((reporte) => (
-                  <CardReporte
-                    key={reporte.id}
-                    reporte={reporte}
-                    estaLogado={Boolean(usuario)}
-                    onEditar={() => abrirEdicao(reporte)}
-                    onExcluir={() => setParaExcluir(reporte)}
-                    onAbrirChat={() => abrirChat(reporte.id)}
-                    onAjudar={() => aoClicarAjudar(reporte)}
-                    onParticipar={() => participarMutirao(reporte)}
-                    participandoCarregando={participacaoPendenteId === reporte.id}
-                    onMudarStatus={(novo) => mudarStatus(reporte, novo)}
-                    onConversarOferta={
-                      reporte.minhaOfertaId
-                        ? () => iniciarConversaAjuda(reporte.minhaOfertaId)
-                        : undefined
-                    }
-                    onVerMensagensNaoLidas={
-                      reporte.souDono && reporte.ofertas?.length > 0
-                        ? () => {
-                            setMostrarSelecaoConversa(true);
-                            setIdOfertas(reporte.id);
-                          }
-                        : undefined
-                    }
-                    onVerOfertas={
-                      somenteMeus
-                        ? () => {
-                            setMostrarSelecaoConversa(false);
-                            setIdOfertas(reporte.id);
-                          }
-                        : undefined
-                    }
-                  />
-                ))}
+                {lista.map(renderizarCard)}
               </Grid>
 
               <p className="reportes__total">

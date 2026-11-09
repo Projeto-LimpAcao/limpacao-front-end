@@ -127,7 +127,43 @@ function montarPayloadReporte(formulario) {
     imagem: JSON.stringify(formulario.imagens ?? (formulario.imagem ? [formulario.imagem] : [])),
     descricao: formulario.descricao,
     multirao: Boolean(formulario.multirao),
+    latitude: formulario.latitude ?? null,
+    longitude: formulario.longitude ?? null,
   };
+}
+
+/*
+ * Converte o endereço do reporte em coordenadas com o Geocoder do Google Maps.
+ * O script do Maps é carregado pelo APIProvider da página de reportes; sem a
+ * chave configurada (ou se o endereço não for encontrado) devolve null e o
+ * reporte é salvo sem posição no mapa.
+ */
+export async function buscarCoordenadas(formulario) {
+  if (!window.google?.maps?.importLibrary) return null;
+
+  const endereco = [
+    [formulario.rua, formulario.numero].filter(Boolean).join(", "),
+    formulario.cidade,
+    formulario.estado,
+    formulario.cep,
+    "Brasil",
+  ]
+    .map((parte) => String(parte ?? "").trim())
+    .filter(Boolean)
+    .join(" - ");
+
+  try {
+    const { Geocoder } = await window.google.maps.importLibrary("geocoding");
+    const { results } = await new Geocoder().geocode({
+      address: endereco,
+      region: "BR",
+      componentRestrictions: { country: "BR" },
+    });
+    const local = results?.[0]?.geometry?.location;
+    return local ? { latitude: local.lat(), longitude: local.lng() } : null;
+  } catch {
+    return null;
+  }
 }
 
 export async function listarReportes(
