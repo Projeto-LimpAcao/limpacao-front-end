@@ -95,8 +95,8 @@ export default function Trabalhos() {
 
             <div className="trabalhos__foto">
               <img
-                src="/imagem-login.jpg"
-                alt="Pessoas voluntárias recolhendo resíduos em um espaço público"
+                src="/imagem-trabalhos.webp"
+                alt="Voluntários recolhendo lixo em um parque com sacos azuis"
                 loading="lazy"
               />
             </div>

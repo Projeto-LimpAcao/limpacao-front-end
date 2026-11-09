@@ -1,0 +1,95 @@
+.mapa-reportes {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-sm);
+}
+
+.mapa-reportes__legenda {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--espaco-md);
+  color: var(--texto-secundario);
+  font-size: var(--texto-sm);
+}
+
+.mapa-reportes__legenda li {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--espaco-xs);
+}
+
+.mapa-reportes__area {
+  height: min(70vh, 640px);
+  min-height: 380px;
+  overflow: hidden;
+  border: 1px solid var(--borda-padrao);
+  border-radius: var(--raio-lg);
+  box-shadow: var(--sombra-sm);
+  background: var(--superficie-suave);
+}
+
+/* ---- Marcador ---- */
+
+.mapa-reportes__marcador {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border: 3px solid #ffffff;
+  border-radius: var(--raio-total);
+  color: #ffffff;
+  box-shadow: 0 4px 10px rgba(15, 23, 42, 0.35);
+  cursor: pointer;
+  transition: transform var(--transicao);
+}
+
+.mapa-reportes__marcador:hover,
+.mapa-reportes__marcador--selecionado {
+  transform: scale(1.15);
+}
+
+.mapa-reportes__marcador--pending {
+  background: var(--cor-aviso);
+}
+
+.mapa-reportes__marcador--in-progress {
+  background: var(--cor-primaria);
+}
+
+.mapa-reportes__marcador--legenda {
+  width: 22px;
+  height: 22px;
+  border-width: 2px;
+  box-shadow: none;
+  cursor: default;
+}
+
+.mapa-reportes__marcador--legenda:hover {
+  transform: none;
+}
+
+/* ---- Card dentro do balão ---- */
+
+.mapa-reportes__card {
+  width: min(320px, 72vw);
+}
+
+.mapa-reportes__card .card-reporte:hover {
+  transform: none;
+}
+
+.mapa-reportes__card .card-reporte__foto img {
+  height: 140px;
+}
+
+/* O balão do Google tem fundo branco fixo; o card mantém as cores do tema. */
+.mapa-reportes__janela {
+  color: var(--texto-principal);
+}
+
+@media (max-width: 560px) {
+  .mapa-reportes__area {
+    height: 65vh;
+    min-height: 320px;
+  }
+}

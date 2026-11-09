@@ -31,6 +31,7 @@ export default function Rotas() {
       <Route path="/login" element={<Login />} />
       <Route path="/trabalhos" element={<Trabalhos />} />
       <Route path="/reportes" element={<Reportes />} />
+      <Route path="/mapa" element={<Reportes visualizacao="mapa" />} />
 
       <Route
         path="/meus-reportes"

@@ -14,9 +14,11 @@ import {
   CardReporte,
   EstadoVazio,
   FormularioReporte,
+  MapaReportes,
   ModalAjuda,
   ModalChat,
   ModalConversaAjuda,
+  ModalStatusReporte,
   PainelEstatisticas,
   PainelFiltros,
 } from "../../index";
@@ -24,19 +26,16 @@ import { useAuth, useRelatorios } from "../../../hooks";
 import { listarMensagensNaoVisualizadas } from "../../../hooks/useRelatorios";
 import { buscarEnderecoPorCep } from "../../../services/cepService";
 import { filtrarReportes } from "../../../utils/filtrar";
-import { lerImagemComoTexto } from "../../utils/formatar";
 import { CAMINHOS } from "../../../rotas/caminhos";
-import { formatarDataHora } from "../../utils/formatar";
-import { listarMensagensConversaAjuda } from "../../../services/relatoriosService";
+import { status as infoStatus, tipoMudancaStatus } from "../../../config/listas";
+import { formatarDataHora, prepararImagens } from "../../utils/formatar";
+import {
+  buscarCoordenadas,
+  listarMensagensConversaAjuda,
+} from "../../../services/relatoriosService";
+import { GOOGLE_MAPS } from "../../../config/projeto";
+import { APIProvider } from "@vis.gl/react-google-maps";
 import { resolverOfertaConversaAjuda } from "../../../utils/resolverOfertaConversaAjuda";
-
-const TAMANHO_MAXIMO_IMAGEM = 5 * 1024 * 1024;
-const TIPOS_IMAGEM_SUPORTADOS = [
-  "image/jpeg",
-  "image/png",
-  "image/gif",
-  "image/webp",
-];
 
 /* Como o formulário começa quando é um cadastro novo. */
 const FORMULARIO_VAZIO = {
@@ -91,7 +90,31 @@ function extrairReferencia(reporte) {
   return localizacao === endereco ? "" : localizacao;
 }
 
-export default function Reportes({ somenteMeus = false }) {
+/* Carrega o Google Maps (mapa e geocodificação) quando a chave está configurada. */
+export default function Reportes(props) {
+  const [erroMapa, setErroMapa] = useState("");
+  const pagina = <ConteudoReportes {...props} erroMapa={erroMapa} />;
+
+  if (!GOOGLE_MAPS.chave) return pagina;
+
+  return (
+    <APIProvider
+      apiKey={GOOGLE_MAPS.chave}
+      language="pt-BR"
+      region="BR"
+      onError={() =>
+        setErroMapa(
+          "Não foi possível carregar o Google Maps. Verifique a chave e as APIs liberadas no Google Cloud.",
+        )
+      }
+    >
+      {pagina}
+    </APIProvider>
+  );
+}
+
+function ConteudoReportes({ somenteMeus = false, visualizacao = "lista", erroMapa = "" }) {
+  const ehMapa = visualizacao === "mapa";
   const { usuario } = useAuth();
   const navegar = useNavigate();
   const local = useLocation();
@@ -153,6 +176,10 @@ export default function Reportes({ somenteMeus = false }) {
   const [enviandoOferta, setEnviandoOferta] = useState(false);
   const [paraExcluir, setParaExcluir] = useState(null);
   const [excluindo, setExcluindo] = useState(false);
+  const [participacaoPendenteId, setParticipacaoPendenteId] = useState(null);
+  const [mudancaStatus, setMudancaStatus] = useState(null);
+  const [mudandoStatus, setMudandoStatus] = useState(false);
+  const [erroStatus, setErroStatus] = useState("");
 
   const [aviso, setAviso] = useState("");
   const [erroAcao, setErroAcao] = useState("");
@@ -296,41 +323,19 @@ export default function Reportes({ somenteMeus = false }) {
     evento.target.value = "";
     if (arquivos.length === 0) return;
 
-    const imagensAtuais = formulario.imagens ?? [];
-    const espacoDisponivel = 5 - imagensAtuais.length;
-    const imagensValidas = [];
-    const errosArquivo = [];
-
-    arquivos.forEach((arquivo) => {
-      if (!TIPOS_IMAGEM_SUPORTADOS.includes(arquivo.type)) {
-        errosArquivo.push(`${arquivo.name}: formato não suportado.`);
-      } else if (arquivo.size > TAMANHO_MAXIMO_IMAGEM) {
-        errosArquivo.push(`${arquivo.name}: tamanho máximo de 5 MB.`);
-      } else if (imagensValidas.length < espacoDisponivel) {
-        imagensValidas.push(arquivo);
-      } else {
-        errosArquivo.push("Cada reporte pode ter no máximo 5 imagens.");
-      }
-    });
-
-    if (imagensValidas.length === 0) {
-      setErroForm(errosArquivo.join(" "));
-      return;
-    }
-
     setErroForm("");
     try {
-      const imagens = await Promise.all(
-        imagensValidas.map((arquivo) => lerImagemComoTexto(arquivo)),
+      const { imagens, erros: errosArquivo } = await prepararImagens(
+        arquivos,
+        formulario.imagens?.length ?? 0,
       );
-      if (imagens.some((imagem) => typeof imagem !== "string")) {
-        throw new Error("Não foi possível converter uma das imagens.");
+      if (imagens.length > 0) {
+        setFormulario((atual) => ({
+          ...atual,
+          imagens: [...(atual.imagens ?? []), ...imagens],
+        }));
+        setErros((atual) => ({ ...atual, imagens: "" }));
       }
-      setFormulario((atual) => ({
-        ...atual,
-        imagens: [...(atual.imagens ?? []), ...imagens],
-      }));
-      setErros((atual) => ({ ...atual, imagens: "" }));
       if (errosArquivo.length > 0) setErroForm(errosArquivo.join(" "));
     } catch (problema) {
       setErroForm(problema.message);
@@ -388,17 +393,25 @@ export default function Reportes({ somenteMeus = false }) {
     setErroForm("");
 
     try {
+      /* Posição no mapa a partir do endereço; se não achar, salva sem ela. */
+      const coordenadas = await buscarCoordenadas(formulario);
       const formularioComLocalizacao = {
         ...formulario,
         localizacao: montarLocalizacao(formulario),
+        latitude: coordenadas?.latitude ?? null,
+        longitude: coordenadas?.longitude ?? null,
       };
+      const avisoMapa =
+        GOOGLE_MAPS.chave && !coordenadas
+          ? " O endereço não foi localizado, então ele não aparecerá no mapa."
+          : "";
 
       if (editandoId) {
         await atualizar(editandoId, formularioComLocalizacao);
-        setAviso("Reporte atualizado.");
+        setAviso(`Reporte atualizado.${avisoMapa}`);
       } else {
         await criar(formularioComLocalizacao);
-        setAviso("Reporte cadastrado. Obrigado por ajudar!");
+        setAviso(`Reporte cadastrado. Obrigado por ajudar!${avisoMapa}`);
       }
 
       setFormAberto(false);
@@ -511,9 +524,36 @@ export default function Reportes({ somenteMeus = false }) {
     setMensagensConversaInicial([]);
   }, []);
 
+  const participarMutirao = async (reporte) => {
+    if (!exigirLogin() || participacaoPendenteId !== null) return;
+    setParticipacaoPendenteId(reporte.id);
+    setErroAcao("");
+
+    try {
+      const participando = await alternarParticipacao(reporte.id);
+      setAviso(
+        participando
+          ? `Você confirmou presença no mutirão de "${reporte.titulo}".`
+          : `Você saiu do mutirão de "${reporte.titulo}".`,
+      );
+    } catch (problema) {
+      setErroAcao(problema.message);
+    } finally {
+      setParticipacaoPendenteId(null);
+    }
+  };
+
+  /* Trocas que exigem foto, justificativa ou confirmação passam pelo modal;
+     o status só muda depois que o backend aceitar. */
   const mudarStatus = async (reporte, novoStatus) => {
     if (!exigirLogin()) return;
     setErroAcao("");
+
+    if (tipoMudancaStatus(reporte.status, novoStatus)) {
+      setErroStatus("");
+      setMudancaStatus({ reporte, novoStatus });
+      return;
+    }
 
     try {
       await alterarStatus(reporte, novoStatus);
@@ -521,6 +561,66 @@ export default function Reportes({ somenteMeus = false }) {
       setErroAcao(problema.message);
     }
   };
+
+  const confirmarMudancaStatus = async (detalhes) => {
+    if (!mudancaStatus) return;
+    const { reporte, novoStatus } = mudancaStatus;
+    setMudandoStatus(true);
+    setErroStatus("");
+
+    try {
+      await alterarStatus(reporte, novoStatus, detalhes);
+      setMudancaStatus(null);
+      setAviso(`"${reporte.titulo}" agora está ${infoStatus(novoStatus).label.toLowerCase()}.`);
+    } catch (problema) {
+      setErroStatus(problema.message);
+    } finally {
+      setMudandoStatus(false);
+    }
+  };
+
+  /* O mesmo card é usado na grade e no balão do mapa. */
+  const renderizarCard = (reporte) => (
+    <CardReporte
+      key={reporte.id}
+      reporte={reporte}
+      estaLogado={Boolean(usuario)}
+      onEditar={() => abrirEdicao(reporte)}
+      onExcluir={() => setParaExcluir(reporte)}
+      onAbrirChat={() => abrirChat(reporte.id)}
+      onAjudar={() => aoClicarAjudar(reporte)}
+      onParticipar={() => participarMutirao(reporte)}
+      participandoCarregando={participacaoPendenteId === reporte.id}
+      onMudarStatus={(novo) => mudarStatus(reporte, novo)}
+      onConversarOferta={
+        reporte.minhaOfertaId
+          ? () => iniciarConversaAjuda(reporte.minhaOfertaId)
+          : undefined
+      }
+      onVerMensagensNaoLidas={
+        reporte.souDono && reporte.ofertas?.length > 0
+          ? () => {
+              setMostrarSelecaoConversa(true);
+              setIdOfertas(reporte.id);
+            }
+          : undefined
+      }
+      onVerOfertas={
+        somenteMeus
+          ? () => {
+              setMostrarSelecaoConversa(false);
+              setIdOfertas(reporte.id);
+            }
+          : undefined
+      }
+    />
+  );
+
+  const naoResolvidos = lista.filter((reporte) => reporte.status !== "resolved");
+  const semLocalizacao = naoResolvidos.filter(
+    (reporte) =>
+      !Number.isFinite(reporte.latitude) || !Number.isFinite(reporte.longitude),
+  );
 
   /* ---------------- 3. Tela ---------------- */
 
@@ -539,12 +639,18 @@ export default function Reportes({ somenteMeus = false }) {
           <header className="reportes__cabecalho">
             <div className="reportes__cabecalho-texto">
               <h2 className="reportes__titulo">
-                {somenteMeus ? "Meus reportes" : "Reportes da comunidade"}
+                {ehMapa
+                  ? "Mapa de ocorrências"
+                  : somenteMeus
+                    ? "Meus reportes"
+                    : "Reportes da comunidade"}
               </h2>
               <p className="reportes__descricao">
-                {somenteMeus
-                  ? `Olá, ${usuario.nome}. Aqui estão os reportes que você criou — dá pra editar, mudar o status e excluir.`
-                  : "Veja os problemas ambientais reportados pelas comunidades e ofereça ajuda."}
+                {ehMapa
+                  ? "Veja onde estão os reportes ainda não resolvidos. Clique em um ponto para abrir o reporte."
+                  : somenteMeus
+                    ? `Olá, ${usuario.nome}. Aqui estão os reportes que você criou — dá pra editar, mudar o status e excluir.`
+                    : "Veja os problemas ambientais reportados pelas comunidades e ofereça ajuda."}
               </p>
             </div>
             {somenteMeus && (
@@ -639,7 +745,7 @@ export default function Reportes({ somenteMeus = false }) {
             <Carregando texto="Carregando reportes..." />
           ) : erro ? (
             <Alerta tipo="erro">{erro}</Alerta>
-          ) : lista.length === 0 ? (
+          ) : lista.length === 0 && !ehMapa ? (
             <EstadoVazio
               titulo={
                 somenteMeus
@@ -654,47 +760,28 @@ export default function Reportes({ somenteMeus = false }) {
               rotuloAcao="Criar um reporte"
               onAcao={abrirNovo}
             />
+          ) : ehMapa ? (
+            !GOOGLE_MAPS.chave ? (
+              <EstadoVazio
+                titulo="Mapa indisponível"
+                descricao="Configure a chave do Google Maps (VITE_GOOGLE_MAPS_API_KEY no arquivo .env.local) e reinicie o front-end."
+              />
+            ) : (
+              <>
+                <Alerta tipo="erro">{erroMapa}</Alerta>
+                <MapaReportes reportes={lista} renderizarCard={renderizarCard} />
+                <p className="reportes__total">
+                  {naoResolvidos.length - semLocalizacao.length} reporte(s) não
+                  resolvido(s) no mapa
+                  {semLocalizacao.length > 0 &&
+                    ` · ${semLocalizacao.length} ainda sem localização (edite o reporte e salve para localizar o endereço)`}
+                </p>
+              </>
+            )
           ) : (
             <>
               <Grid colunas={3} minimo="300px">
-                {lista.map((reporte) => (
-                  <CardReporte
-                    key={reporte.id}
-                    reporte={reporte}
-                    estaLogado={Boolean(usuario)}
-                    onEditar={() => abrirEdicao(reporte)}
-                    onExcluir={() => setParaExcluir(reporte)}
-                    onAbrirChat={() => abrirChat(reporte.id)}
-                    onAjudar={() => aoClicarAjudar(reporte)}
-                    onParticipar={() => {
-                      if (exigirLogin()) {
-                        alternarParticipacao(reporte.id, "participando");
-                      }
-                    }}
-                    onMudarStatus={(novo) => mudarStatus(reporte, novo)}
-                    onConversarOferta={
-                      reporte.minhaOfertaId
-                        ? () => iniciarConversaAjuda(reporte.minhaOfertaId)
-                        : undefined
-                    }
-                    onVerMensagensNaoLidas={
-                      reporte.souDono && reporte.ofertas?.length > 0
-                        ? () => {
-                            setMostrarSelecaoConversa(true);
-                            setIdOfertas(reporte.id);
-                          }
-                        : undefined
-                    }
-                    onVerOfertas={
-                      somenteMeus
-                        ? () => {
-                            setMostrarSelecaoConversa(false);
-                            setIdOfertas(reporte.id);
-                          }
-                        : undefined
-                    }
-                  />
-                ))}
+                {lista.map(renderizarCard)}
               </Grid>
 
               <p className="reportes__total">
@@ -845,6 +932,19 @@ export default function Reportes({ somenteMeus = false }) {
           onFechar={fecharConversaAjuda}
           onFalhaAcesso={tratarFalhaAcessoConversa}
           mensagensIniciais={mensagensConversaInicial}
+        />
+      )}
+
+      {mudancaStatus && (
+        <ModalStatusReporte
+          key={`${mudancaStatus.reporte.id}-${mudancaStatus.novoStatus}`}
+          reporte={mudancaStatus.reporte}
+          novoStatus={mudancaStatus.novoStatus}
+          onFechar={() => setMudancaStatus(null)}
+          onConfirmar={confirmarMudancaStatus}
+          enviando={mudandoStatus}
+          erroGeral={erroStatus}
+          onLimparErroGeral={() => setErroStatus("")}
         />
       )}
 

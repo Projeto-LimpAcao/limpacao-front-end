@@ -13,6 +13,7 @@ import {
   CheckCircle2,
   ChevronLeft,
   ChevronRight,
+  RotateCcw,
 } from "lucide-react";
 
 import "./CardReporte.css";
@@ -40,8 +41,11 @@ export default function CardReporte({
   onConversarOferta,
   onVerMensagensNaoLidas,
   estaLogado = false,
+  participandoCarregando = false,
 }) {
-  const [imagemAberta, setImagemAberta] = useState(false);
+  /* null = fechada; "reporte" = fotos do problema; "conclusao" = fotos da limpeza. */
+  const [galeria, setGaleria] = useState(null);
+  const imagemAberta = galeria !== null;
   const [indiceImagem, setIndiceImagem] = useState(0);
   const [indiceCapa, setIndiceCapa] = useState(0);
   const pausarCarrosselRef = useRef(false);
@@ -50,6 +54,11 @@ export default function CardReporte({
     : reporte.imagem
       ? [reporte.imagem]
       : [];
+  const imagensConclusao =
+    reporte.status === "resolved" ? reporte.imagensConclusao ?? [] : [];
+  const imagensGaleria = galeria === "conclusao" ? imagensConclusao : imagens;
+  const tituloGaleria =
+    galeria === "conclusao" ? `Limpeza concluída: ${reporte.titulo}` : reporte.titulo;
 
   useEffect(() => {
     if (imagens.length < 2) return undefined;
@@ -79,7 +88,7 @@ export default function CardReporte({
             className="card-reporte__foto"
             onClick={() => {
               setIndiceImagem(indiceCapa);
-              setImagemAberta(true);
+              setGaleria("reporte");
             }}
             onMouseEnter={() => {
               pausarCarrosselRef.current = true;
@@ -124,6 +133,15 @@ export default function CardReporte({
 
           <p className="card-reporte__descricao linhas-2">{reporte.descricao}</p>
 
+          {reporte.status !== "resolved" && reporte.justificativaReabertura && (
+            <p className="card-reporte__reabertura linhas-2">
+              <RotateCcw size={14} aria-hidden="true" />
+              <span>
+                <strong>Reaberto:</strong> {reporte.justificativaReabertura}
+              </span>
+            </p>
+          )}
+
           <div className="card-reporte__rodape">
             <div className="card-reporte__autor">
               <strong>{reporte.autor}</strong>
@@ -160,6 +178,20 @@ export default function CardReporte({
               Mensagens da comunidade
             </button>
 
+            {imagensConclusao.length > 0 && (
+              <button
+                type="button"
+                className="card-reporte__acao card-reporte__acao--conclusao"
+                onClick={() => {
+                  setIndiceImagem(0);
+                  setGaleria("conclusao");
+                }}
+              >
+                <CheckCircle2 size={15} />
+                {imagensConclusao.length > 1 ? "Fotos da conclusão" : "Foto da conclusão"}
+              </button>
+            )}
+
             {!souDono && (
               <>
                 <button
@@ -189,6 +221,8 @@ export default function CardReporte({
                       estouParticipando ? "card-reporte__acao--ativa" : ""
                     }`}
                     onClick={onParticipar}
+                    disabled={participandoCarregando}
+                    title={estouParticipando ? "Clique para sair do mutirão" : undefined}
                   >
                     <Users size={15} />
                     {estouParticipando ? "Participando" : "Quero participar"}
@@ -272,18 +306,20 @@ export default function CardReporte({
 
       <Modal
         aberto={imagemAberta}
-        onFechar={() => setImagemAberta(false)}
-        titulo={reporte.titulo}
+        onFechar={() => setGaleria(null)}
+        titulo={tituloGaleria}
         largura="1400px"
         className="modal--imagem-reporte"
       >
         <div className="card-reporte__galeria">
-          {imagens.length > 1 && (
+          {imagensGaleria.length > 1 && (
             <button
               type="button"
               className="card-reporte__navegacao-imagem"
               onClick={() =>
-                setIndiceImagem((indice) => (indice - 1 + imagens.length) % imagens.length)
+                setIndiceImagem(
+                  (indice) => (indice - 1 + imagensGaleria.length) % imagensGaleria.length,
+                )
               }
               aria-label="Imagem anterior"
             >
@@ -291,22 +327,24 @@ export default function CardReporte({
             </button>
           )}
           <img
-            src={imagens[indiceImagem]}
-            alt={`${reporte.titulo} — imagem ${indiceImagem + 1} de ${imagens.length}`}
+            src={imagensGaleria[indiceImagem]}
+            alt={`${tituloGaleria} — imagem ${indiceImagem + 1} de ${imagensGaleria.length}`}
             className="card-reporte__foto-grande"
           />
-          {imagens.length > 1 && (
+          {imagensGaleria.length > 1 && (
             <>
               <button
                 type="button"
                 className="card-reporte__navegacao-imagem"
-                onClick={() => setIndiceImagem((indice) => (indice + 1) % imagens.length)}
+                onClick={() =>
+                  setIndiceImagem((indice) => (indice + 1) % imagensGaleria.length)
+                }
                 aria-label="Próxima imagem"
               >
                 <ChevronRight size={24} />
               </button>
               <span className="card-reporte__galeria-contagem">
-                {indiceImagem + 1} / {imagens.length}
+                {indiceImagem + 1} / {imagensGaleria.length}
               </span>
             </>
           )}

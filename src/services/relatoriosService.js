@@ -1,4 +1,4 @@
-import { requisicaoApi } from "./api";
+import { requisicaoApi, urlArquivo } from "./api";
 import { listarContagensMensagens } from "./chatService";
 
 const URGENCIA_API = {
@@ -46,10 +46,35 @@ async function validarResposta(resposta, recurso = "reportes") {
     erro.status = resposta.status;
     throw erro;
   }
+  if (resposta.status === 400) {
+    /* Regras de negócio voltam com a explicação em "mensagem". */
+    const dados = await resposta.json().catch(() => null);
+    if (dados?.mensagem) {
+      const erro = new Error(dados.mensagem);
+      erro.status = resposta.status;
+      throw erro;
+    }
+  }
 
   throw new Error(
     `Não foi possível acessar ${recurso} (${resposta.status}).`,
   );
+}
+
+/* As imagens chegam do backend como texto JSON com o caminho de cada
+   arquivo gravado em disco: '["/api/arquivos/3f2c....png", ...]'. */
+function lerListaImagens(valor) {
+  if (typeof valor !== "string" || !valor) return [];
+  let imagens;
+  try {
+    const dados = JSON.parse(valor);
+    imagens = Array.isArray(dados) ? dados : [valor];
+  } catch {
+    imagens = [valor];
+  }
+  return imagens
+    .filter((imagem) => typeof imagem === "string" && imagem)
+    .map(urlArquivo);
 }
 
 function mapearReporte(
@@ -58,20 +83,14 @@ function mapearReporte(
   quantidadeMensagens = 0,
   ofertas = [],
   minhaOferta = null,
+  participando = false,
 ) {
-  let imagens = [];
-  if (Array.isArray(reporte.imagens)) {
-    imagens = reporte.imagens.filter((imagem) => typeof imagem === "string" && imagem);
-  } else if (typeof reporte.imagem === "string" && reporte.imagem) {
-    try {
-      const dados = JSON.parse(reporte.imagem);
-      imagens = Array.isArray(dados)
-        ? dados.filter((imagem) => typeof imagem === "string" && imagem)
-        : [reporte.imagem];
-    } catch {
-      imagens = [reporte.imagem];
-    }
-  }
+  const imagens = Array.isArray(reporte.imagens)
+    ? reporte.imagens.filter((imagem) => typeof imagem === "string" && imagem)
+    : lerListaImagens(reporte.imagem);
+  const imagensConclusao = Array.isArray(reporte.imagensConclusao)
+    ? reporte.imagensConclusao
+    : lerListaImagens(reporte.imagemConclusao);
 
   return {
     ...reporte,
@@ -80,6 +99,7 @@ function mapearReporte(
     data: reporte.criadoEm ?? reporte.data,
     imagem: imagens[0] ?? "",
     imagens,
+    imagensConclusao,
     participantes: reporte.participantes ?? 0,
     ajudantes: reporte.ajudantes ?? 0,
     mensagens: [],
@@ -89,7 +109,7 @@ function mapearReporte(
     minhaOfertaId: minhaOferta?.id ?? null,
     minhaParticipacao: {
       ajudando: Boolean(minhaOferta),
-      participando: false,
+      participando,
     },
   };
 }
@@ -107,7 +127,43 @@ function montarPayloadReporte(formulario) {
     imagem: JSON.stringify(formulario.imagens ?? (formulario.imagem ? [formulario.imagem] : [])),
     descricao: formulario.descricao,
     multirao: Boolean(formulario.multirao),
+    latitude: formulario.latitude ?? null,
+    longitude: formulario.longitude ?? null,
   };
+}
+
+/*
+ * Converte o endereço do reporte em coordenadas com o Geocoder do Google Maps.
+ * O script do Maps é carregado pelo APIProvider da página de reportes; sem a
+ * chave configurada (ou se o endereço não for encontrado) devolve null e o
+ * reporte é salvo sem posição no mapa.
+ */
+export async function buscarCoordenadas(formulario) {
+  if (!window.google?.maps?.importLibrary) return null;
+
+  const endereco = [
+    [formulario.rua, formulario.numero].filter(Boolean).join(", "),
+    formulario.cidade,
+    formulario.estado,
+    formulario.cep,
+    "Brasil",
+  ]
+    .map((parte) => String(parte ?? "").trim())
+    .filter(Boolean)
+    .join(" - ");
+
+  try {
+    const { Geocoder } = await window.google.maps.importLibrary("geocoding");
+    const { results } = await new Geocoder().geocode({
+      address: endereco,
+      region: "BR",
+      componentRestrictions: { country: "BR" },
+    });
+    const local = results?.[0]?.geometry?.location;
+    return local ? { latitude: local.lat(), longitude: local.lng() } : null;
+  } catch {
+    return null;
+  }
 }
 
 export async function listarReportes(
@@ -124,11 +180,15 @@ export async function listarReportes(
   let meus = [];
   let ofertas = [];
   let minhasOfertas = [];
+  let meusMutiroes = [];
   if (incluirMeus) {
     const respostaMeus = await requisicaoApi("relatorios/meus");
     if (respostaMeus.ok) {
       meus = await respostaMeus.json();
-      minhasOfertas = await listarOfertasAjudaEnviadas();
+      [minhasOfertas, meusMutiroes] = await Promise.all([
+        listarOfertasAjudaEnviadas(),
+        listarMutiroesParticipando(),
+      ]);
       if (meus.length > 0) {
         ofertas = await listarOfertasAjudaMeus();
       }
@@ -138,6 +198,7 @@ export async function listarReportes(
   }
 
   const idsMeus = new Set(meus.map((reporte) => reporte.id));
+  const idsMutiroes = new Set(meusMutiroes);
 
   return todos.map((reporte) =>
     mapearReporte(
@@ -148,8 +209,25 @@ export async function listarReportes(
         .filter((oferta) => oferta.relatorioId === reporte.id)
         .map((oferta) => ({ ...oferta, data: oferta.criadoEm })),
       minhasOfertas.find((oferta) => oferta.relatorioId === reporte.id) ?? null,
+      idsMutiroes.has(reporte.id),
     ),
   );
+}
+
+/* Ids dos reportes em cujo mutirão o usuário logado está participando. */
+export async function listarMutiroesParticipando() {
+  const resposta = await requisicaoApi("participacoes/minhas");
+  await validarResposta(resposta, "suas participações em mutirões");
+  return resposta.json();
+}
+
+/* Entra no mutirão (devolve true) ou sai dele (devolve false). */
+export async function alternarParticipacaoMutirao(relatorioId) {
+  const resposta = await requisicaoApi(`relatorios/${relatorioId}/participacoes`, {
+    method: "POST",
+  });
+  await validarResposta(resposta, "a participação no mutirão");
+  return resposta.status !== 204;
 }
 
 export async function listarOfertasAjudaMeus() {
@@ -229,16 +307,26 @@ export async function excluirReporte(id) {
   await validarResposta(resposta);
 }
 
-export async function atualizarStatusReporte(id, status) {
+export async function atualizarStatusReporte(
+  id,
+  status,
+  { imagensConclusao, justificativa } = {},
+) {
   const statusApi = STATUS_API[status];
   if (!statusApi) {
     throw new Error("Status de reporte inválido.");
   }
 
+  const corpo = { status: statusApi };
+  if (imagensConclusao?.length) {
+    corpo.imagemConclusao = JSON.stringify(imagensConclusao);
+  }
+  if (justificativa) corpo.justificativa = justificativa;
+
   const resposta = await requisicaoApi(`relatorios/${id}`, {
     method: "PUT",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ status: statusApi }),
+    body: JSON.stringify(corpo),
   });
   await validarResposta(resposta);
   return mapearReporte(await resposta.json(), true);
