@@ -26,7 +26,7 @@ export async function buscarEnderecoPorCep(cepInformado, { signal } = {}) {
 
   const endereco = await resposta.json();
   return {
-    cep: endereco.cep || `${cep.slice(0, 5)}-${cep.slice(5)}`,
+    cep: `${cep.slice(0, 5)}-${cep.slice(5)}`,
     rua: endereco.street || "",
     bairro: endereco.neighborhood || "",
     cidade: endereco.city || "",

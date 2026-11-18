@@ -3,7 +3,6 @@ import { LockKeyhole } from "lucide-react";
 import Modal from "../../moleculas/Modal/Modal";
 import Input from "../../atomos/InputTexto/Inputexto";
 import Textarea from "../../atomos/Textarea/Textarea";
-import Alerta from "../../moleculas/Alerta/Alerta";
 import {
   formatarTelefone,
   removerDigitoAnteriorTelefone,
@@ -18,10 +17,8 @@ export default function ModalAjuda({
   onEnviar,
   formulario = { telefone: "", mensagem: "" },
   erros = {},
-  erroGeral = "",
   enviando = false,
   onAlterarCampo,
-  onLimparErroGeral,
 }) {
   const telefoneRef = useRef(null);
 
@@ -68,10 +65,6 @@ export default function ModalAjuda({
       rotuloConfirmar="Enviar oferta"
       confirmando={enviando}
     >
-      <Alerta tipo="erro" onFechar={onLimparErroGeral}>
-        {erroGeral}
-      </Alerta>
-
       <div className="modal-ajuda__mensagem">
         <p className="modal-ajuda__saudacao">
           Olá, <strong>{nomeUsuario}</strong>!

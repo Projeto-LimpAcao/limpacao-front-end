@@ -15,6 +15,7 @@ export default function PainelEstatisticas({
   },
   filtroAtivo = "todos",
   meusAtivo = false,
+  exibirMeus = true,
   onFiltrar,
   onVerMeus,
 }) {
@@ -107,13 +108,15 @@ export default function PainelEstatisticas({
             onClick={onFiltrar ? () => onFiltrar("in-progress") : undefined}
           />
 
-          <StatCard
-            icone={<FileText size={28} />}
-            valor={meus}
-            label="Meus reportes"
-            ativo={meusAtivo}
-            onClick={onVerMeus}
-          />
+          {exibirMeus && (
+            <StatCard
+              icone={<FileText size={28} />}
+              valor={meus}
+              label="Meus reportes"
+              ativo={meusAtivo}
+              onClick={onVerMeus}
+            />
+          )}
         </div>
       </div>
     </section>

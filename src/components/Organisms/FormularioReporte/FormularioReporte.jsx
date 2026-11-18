@@ -8,14 +8,12 @@ import Textarea from "../../atomos/Textarea/Textarea";
 import Botao from "../../atomos/Botao/Botao";
 import CampoImagens from "../../moleculas/CampoImagens/CampoImagens";
 import RadioGrupo from "../../moleculas/RadioGrupo/RadioGrupo";
-import Alerta from "../../moleculas/Alerta/Alerta";
 import { URGENCIAS } from "../../../config/listas";
 
 export default function FormularioReporte({
   formulario,
   onAlterar,
   erros = {},
-  erroGeral = "",
   onArquivoSelecionado,
   onRemoverImagem,
   onBuscarCep,
@@ -37,8 +35,6 @@ export default function FormularioReporte({
 
   return (
     <div className="form-reporte">
-      <Alerta tipo="erro">{erroGeral}</Alerta>
-
       <div className="form-reporte__linha">
         <Input
           label="Título"

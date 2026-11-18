@@ -1,5 +1,5 @@
-import { Link, NavLink } from "react-router-dom";
-import { Plus, LogOut, Menu, Moon, Sun } from "lucide-react";
+import { Link, NavLink, useNavigate } from "react-router-dom";
+import { Plus, LogIn, LogOut, Menu, MessageCircle, Moon, Sun } from "lucide-react";
 
 import "./AppBar.css";
 import DrawerLateral from "../DrawerLateral/DrawerLateral";
@@ -14,13 +14,18 @@ export default function AppBar({
   drawerAberto = false,
   mostrarBotaoTema = false,
   caminhoHome = "/",
+  caminhoLogin = "/login",
   onAbrirMenu,
   onFecharMenu,
   onAlternarTema,
   onSair,
   onNovoReporte,
+  mensagensNaoLidas = 0,
+  onAbrirMensagens,
 }) {
+  const navegar = useNavigate();
   const menuVisivel = menu;
+  const abas = menu.filter(({ caminho }) => caminho !== caminhoLogin);
 
   return (
     <>
@@ -40,7 +45,7 @@ export default function AppBar({
           </Link>
 
           <nav className="appbar__abas" aria-label="Navegação principal">
-            {menuVisivel.map(({ label, caminho }) => (
+            {abas.map(({ label, caminho }) => (
               <NavLink
                 key={label}
                 to={caminho}
@@ -69,6 +74,25 @@ export default function AppBar({
 
             {estaLogado && (
               <>
+                <button
+                  type="button"
+                  className="appbar__mensagens"
+                  onClick={onAbrirMensagens}
+                  aria-label={
+                    mensagensNaoLidas > 0
+                      ? `Mensagens: ${mensagensNaoLidas} não lida(s)`
+                      : "Mensagens"
+                  }
+                  title="Mensagens"
+                >
+                  <MessageCircle size={20} />
+                  {mensagensNaoLidas > 0 && (
+                    <span className="appbar__mensagens-total" aria-hidden="true">
+                      {mensagensNaoLidas > 99 ? "99+" : mensagensNaoLidas}
+                    </span>
+                  )}
+                </button>
+
                 <span className="appbar__saudacao">
                   Olá, <strong>{usuario?.nome ?? "usuário"}</strong>
                 </span>
@@ -84,6 +108,17 @@ export default function AppBar({
                   Sair
                 </Botao>
               </>
+            )}
+
+            {!estaLogado && (
+              <Botao
+                variante="secundario"
+                onClick={() => navegar(caminhoLogin)}
+                icone={<LogIn size={18} />}
+                ariaLabel="Entrar na conta"
+              >
+                <span className="appbar__texto-login">Login</span>
+              </Botao>
             )}
 
             {onNovoReporte && (

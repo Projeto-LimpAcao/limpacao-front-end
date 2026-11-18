@@ -7,8 +7,8 @@ import { AppLayout } from "../../index";
 import Botao from "../../atomos/Botao/Botao";
 import InputTexto from "../../atomos/InputTexto/Inputexto";
 import Stack from "../../atomos/Stack/Stack";
-import Alerta from "../../moleculas/Alerta/Alerta";
 import Logo from "../../moleculas/Logo/Logo";
+import RequisitosSenha from "../../moleculas/RequisitosSenha/RequisitosSenha";
 import { CAMINHOS } from "../../../rotas/caminhos";
 import {
   validarCadastro,
@@ -17,6 +17,7 @@ import {
   validarRedefinicaoSenha,
 } from "../../utils/validarFormulario";
 import { useAuth } from "../../../hooks";
+import { notificar } from "../../../utils/notificar";
 import {
   redefinirSenha,
   solicitarRecuperacaoSenha,
@@ -61,8 +62,6 @@ export default function Login() {
   const [formulario, setFormulario] = useState(FORMULARIO_VAZIO);
 
   const [erros, setErros] = useState({});
-  const [erroGeral, setErroGeral] = useState("");
-  const [sucesso, setSucesso] = useState("");
   const [enviando, setEnviando] = useState(false);
   const [mostrarSenha, setMostrarSenha] = useState(false);
   const [mostrarConfirmarSenha, setMostrarConfirmarSenha] = useState(false);
@@ -70,6 +69,16 @@ export default function Login() {
   const { usuario, entrar, cadastrar } = useAuth();
   const navegar = useNavigate();
   const local = useLocation();
+
+  const [linkAplicado, setLinkAplicado] = useState(null);
+  if (
+    new URLSearchParams(local.search).get("modo") === "cadastrar" &&
+    linkAplicado !== local.key
+  ) {
+    setLinkAplicado(local.key);
+    setModo("cadastrar");
+    setErros({});
+  }
 
   const destino = local.state?.de ?? CAMINHOS.home;
   const cadastrando = modo === "cadastrar";
@@ -99,8 +108,7 @@ export default function Login() {
       email: manterEmail ? atual.email : "",
     }));
     setErros({});
-    setErroGeral("");
-    setSucesso(mensagem);
+    notificar.sucesso(mensagem);
     setMostrarSenha(false);
     setMostrarConfirmarSenha(false);
   };
@@ -118,19 +126,19 @@ export default function Login() {
     const novos = VALIDACOES[modo](formulario);
 
     setErros(novos);
-    return Object.keys(novos).length === 0;
+    const valido = Object.keys(novos).length === 0;
+    if (!valido) notificar.camposObrigatorios(novos);
+    return valido;
   };
 
   const reenviarCodigo = async () => {
-    setErroGeral("");
-    setSucesso("");
     setEnviando(true);
 
     try {
       await solicitarRecuperacaoSenha(formulario.email);
-      setSucesso(MENSAGEM_CODIGO_ENVIADO);
+      notificar.sucesso(MENSAGEM_CODIGO_ENVIADO);
     } catch (problema) {
-      setErroGeral(problema.message);
+      notificar.erro(problema.message);
     } finally {
       setEnviando(false);
     }
@@ -138,8 +146,6 @@ export default function Login() {
 
   const enviar = async (evento) => {
     evento.preventDefault();
-    setErroGeral("");
-    setSucesso("");
 
     if (!validar()) return;
 
@@ -174,15 +180,17 @@ export default function Login() {
           formulario.email,
           formulario.senha,
         );
+        notificar.sucesso("Conta criada com sucesso! Bem-vindo(a).");
       } else {
         await entrar(formulario.email, formulario.senha);
+        notificar.sucesso("Login realizado com sucesso!");
       }
       navegar(destino, {
         replace: true,
         state: local.state?.estadoDestino,
       });
     } catch (problema) {
-      setErroGeral(problema.message);
+      notificar.erro(problema.message);
     } finally {
       setEnviando(false);
     }
@@ -226,14 +234,6 @@ export default function Login() {
 
             <p className="login__chamada">Acesse sua área do projeto</p>
           </header>
-
-          <Alerta tipo="erro" onFechar={() => setErroGeral("")}>
-            {erroGeral}
-          </Alerta>
-
-          <Alerta tipo="sucesso" onFechar={() => setSucesso("")}>
-            {sucesso}
-          </Alerta>
 
           <form onSubmit={enviar} noValidate>
             <Stack gap={16}>
@@ -303,7 +303,9 @@ export default function Login() {
                     <input
                       type={mostrarSenha ? "text" : "password"}
                       className={`input input--medio ${erros.senha ? "input--erro" : ""}`}
-                      placeholder="Pelo menos 6 caracteres"
+                      placeholder={
+                        modo === "entrar" ? "Sua senha" : "Crie uma senha forte"
+                      }
                       value={formulario.senha}
                       onChange={alterar("senha")}
                       autoComplete={
@@ -326,6 +328,10 @@ export default function Login() {
 
                   {erros.senha && (
                     <span className="input-mensagem-erro">{erros.senha}</span>
+                  )}
+
+                  {exibeConfirmarSenha && (
+                    <RequisitosSenha senha={formulario.senha} />
                   )}
 
                   {modo === "entrar" && (

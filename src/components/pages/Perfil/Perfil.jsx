@@ -23,6 +23,8 @@ import {
   Botao,
 } from "../../index";
 import InputTexto from "../../atomos/InputTexto/Inputexto";
+import RequisitosSenha from "../../moleculas/RequisitosSenha/RequisitosSenha";
+import { senhaForte } from "../../utils/validarFormulario";
 import {
   PALETAS_TEMA,
   useAuth,
@@ -30,6 +32,7 @@ import {
   useRelatorios,
 } from "../../../hooks";
 import { CAMINHOS } from "../../../rotas/caminhos";
+import { notificar } from "../../../utils/notificar";
 
 /**
  * Dados do usuário logado e um resumo da participação dele.
@@ -44,15 +47,12 @@ export default function Perfil() {
     definirModoEscuro,
     carregando: carregandoPreferencias,
     salvando: salvandoPreferencias,
-    erro: erroPreferencias,
   } = usePaletaTema(usuario?.email);
   const navegar = useNavigate();
   const [nome, setNome] = useState(usuario?.nome ?? "");
   const [senhaAtual, setSenhaAtual] = useState("");
   const [novaSenha, setNovaSenha] = useState("");
   const [confirmarSenha, setConfirmarSenha] = useState("");
-  const [erroPerfil, setErroPerfil] = useState("");
-  const [sucessoPerfil, setSucessoPerfil] = useState("");
   const [salvandoPerfil, setSalvandoPerfil] = useState(false);
 
   if (!usuario) {
@@ -77,36 +77,48 @@ export default function Perfil() {
   const aoSair = () => {
     navegar(CAMINHOS.reportes, { replace: true });
     sair();
+    notificar.sucesso("Você saiu da sua conta.");
+  };
+
+  const aplicarPaleta = async (opcao) => {
+    const salvou = await selecionarPaleta(opcao.id);
+    if (salvou) notificar.sucesso(`Paleta ${opcao.nome} aplicada.`);
+    else notificar.erro("Não foi possível salvar a paleta.");
+  };
+
+  const alternarModoEscuro = async () => {
+    const novoModo = !modoEscuro;
+    const salvou = await definirModoEscuro(novoModo);
+    if (salvou) notificar.sucesso(novoModo ? "Tema escuro ativado." : "Tema claro ativado.");
+    else notificar.erro("Não foi possível salvar o tema.");
   };
 
   const salvarAlteracoesPerfil = async (evento) => {
     evento.preventDefault();
-    setErroPerfil("");
-    setSucessoPerfil("");
 
     const nomeFinal = nome.trim();
     if (!nomeFinal) {
-      setErroPerfil("Informe seu nome.");
+      notificar.erro("Informe seu nome.");
       return;
     }
     if (novaSenha && !senhaAtual) {
-      setErroPerfil("Informe a senha atual para definir uma nova senha.");
+      notificar.erro("Informe a senha atual para definir uma nova senha.");
       return;
     }
-    if (novaSenha && novaSenha.length < 6) {
-      setErroPerfil("A nova senha deve ter pelo menos 6 caracteres.");
+    if (novaSenha && !senhaForte(novaSenha)) {
+      notificar.erro("A nova senha não atende aos requisitos de segurança.");
       return;
     }
     if (novaSenha !== confirmarSenha) {
-      setErroPerfil("A confirmação da nova senha não corresponde.");
+      notificar.erro("A confirmação da nova senha não corresponde.");
       return;
     }
     if (!novaSenha && senhaAtual) {
-      setErroPerfil("Informe a nova senha ou limpe o campo da senha atual.");
+      notificar.erro("Informe a nova senha ou limpe o campo da senha atual.");
       return;
     }
     if (nomeFinal === usuario.nome && !novaSenha) {
-      setErroPerfil("Altere seu nome ou preencha os campos para trocar a senha.");
+      notificar.erro("Altere seu nome ou preencha os campos para trocar a senha.");
       return;
     }
 
@@ -121,9 +133,9 @@ export default function Perfil() {
       setSenhaAtual("");
       setNovaSenha("");
       setConfirmarSenha("");
-      setSucessoPerfil("Seus dados foram atualizados.");
+      notificar.sucesso("Seus dados foram atualizados.");
     } catch (problema) {
-      setErroPerfil(problema.message);
+      notificar.erro(problema.message);
     } finally {
       setSalvandoPerfil(false);
     }
@@ -162,11 +174,6 @@ export default function Perfil() {
                   Salvando preferências...
                 </p>
               )}
-              {erroPreferencias && (
-                <p className="perfil__preferencias-erro" role="alert">
-                  {erroPreferencias}
-                </p>
-              )}
 
               <div className="perfil__paletas-opcoes" role="group" aria-label="Paletas de cores">
                 {PALETAS_TEMA.map((opcao) => (
@@ -176,7 +183,7 @@ export default function Perfil() {
                     className={`perfil__paleta ${
                       paleta === opcao.id ? "perfil__paleta--ativa" : ""
                     }`}
-                    onClick={() => void selecionarPaleta(opcao.id)}
+                    onClick={() => void aplicarPaleta(opcao)}
                     disabled={carregandoPreferencias || salvandoPreferencias}
                     aria-pressed={paleta === opcao.id}
                     aria-label={`Selecionar paleta ${opcao.nome}`}
@@ -207,7 +214,7 @@ export default function Perfil() {
               </div>
               <Botao
                 variante="secundario"
-                onClick={() => void definirModoEscuro(!modoEscuro)}
+                onClick={() => void alternarModoEscuro()}
                 disabled={carregandoPreferencias || salvandoPreferencias}
                 icone={modoEscuro ? <Sun size={16} /> : <Moon size={16} />}
                 ariaLabel={modoEscuro ? "Ativar tema claro" : "Ativar tema escuro"}
@@ -280,7 +287,7 @@ export default function Perfil() {
                   onChange={(evento) => setNovaSenha(evento.target.value)}
                   desabilitado={salvandoPerfil}
                   autoComplete="new-password"
-                  placeholder="Mínimo de 6 caracteres"
+                  placeholder="Crie uma senha forte"
                 />
                 <InputTexto
                   type="password"
@@ -293,16 +300,8 @@ export default function Perfil() {
                 />
               </div>
 
-              {erroPerfil && (
-                <p className="perfil__formulario-erro" role="alert">
-                  {erroPerfil}
-                </p>
-              )}
-              {sucessoPerfil && (
-                <p className="perfil__formulario-sucesso" role="status">
-                  {sucessoPerfil}
-                </p>
-              )}
+              {novaSenha && <RequisitosSenha senha={novaSenha} />}
+
 
               <div className="perfil__formulario-acoes">
                 <Botao
