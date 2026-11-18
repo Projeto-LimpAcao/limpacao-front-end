@@ -26,6 +26,7 @@ import { useAuth, useRelatorios } from "../../../hooks";
 import { listarMensagensNaoVisualizadas } from "../../../hooks/useRelatorios";
 import { buscarEnderecoPorCep } from "../../../services/cepService";
 import { filtrarReportes } from "../../../utils/filtrar";
+import { notificar } from "../../../utils/notificar";
 import { CAMINHOS } from "../../../rotas/caminhos";
 import { status as infoStatus, tipoMudancaStatus } from "../../../config/listas";
 import { formatarDataHora, prepararImagens } from "../../utils/formatar";
@@ -153,8 +154,9 @@ function ConteudoReportes({ somenteMeus = false, visualizacao = "lista", erroMap
   );
   const [editandoId, setEditandoId] = useState(null);
   const [formulario, setFormulario] = useState(FORMULARIO_VAZIO);
+  const [formularioInicial, setFormularioInicial] = useState(FORMULARIO_VAZIO);
+  const [confirmarDescarte, setConfirmarDescarte] = useState(false);
   const [erros, setErros] = useState({});
-  const [erroForm, setErroForm] = useState("");
   const [salvando, setSalvando] = useState(false);
   const [buscandoCep, setBuscandoCep] = useState(false);
   const [erroCep, setErroCep] = useState("");
@@ -167,22 +169,24 @@ function ConteudoReportes({ somenteMeus = false, visualizacao = "lista", erroMap
   const [idConversaAjuda, setIdConversaAjuda] = useState(null);
   const [mensagensConversaInicial, setMensagensConversaInicial] = useState([]);
   const [iniciandoConversaId, setIniciandoConversaId] = useState(null);
-  const [erroConversaAjuda, setErroConversaAjuda] = useState("");
   const [formularioAjuda, setFormularioAjuda] = useState(
     FORMULARIO_AJUDA_VAZIO,
   );
   const [errosAjuda, setErrosAjuda] = useState({});
-  const [erroOferta, setErroOferta] = useState("");
   const [enviandoOferta, setEnviandoOferta] = useState(false);
   const [paraExcluir, setParaExcluir] = useState(null);
   const [excluindo, setExcluindo] = useState(false);
   const [participacaoPendenteId, setParticipacaoPendenteId] = useState(null);
+  const [mensagensAbertas, setMensagensAbertas] = useState(false);
+  const [pedidoMensagens, setPedidoMensagens] = useState(null);
+
+  if (local.state?.abrirMensagens && pedidoMensagens !== local.key) {
+    setPedidoMensagens(local.key);
+    setMensagensAbertas(true);
+  }
   const [mudancaStatus, setMudancaStatus] = useState(null);
   const [mudandoStatus, setMudandoStatus] = useState(false);
-  const [erroStatus, setErroStatus] = useState("");
 
-  const [aviso, setAviso] = useState("");
-  const [erroAcao, setErroAcao] = useState("");
 
   useEffect(
     () => () => requisicaoCep.current?.abort(),
@@ -190,9 +194,22 @@ function ConteudoReportes({ somenteMeus = false, visualizacao = "lista", erroMap
   );
 
   const lista = filtrarReportes(somenteMeus ? meusRelatorios : relatorios, filtros);
-  const conversasNaoVisualizadas = somenteMeus
-    ? listarMensagensNaoVisualizadas(relatorios)
-    : [];
+  const conversasNaoVisualizadas = [
+    ...listarMensagensNaoVisualizadas(relatorios),
+    ...relatorios
+      .filter(
+        (reporte) =>
+          !reporte.souDono &&
+          reporte.minhaOfertaId &&
+          reporte.mensagensNaoLidasMinhaOferta > 0,
+      )
+      .map((reporte) => ({
+        id: reporte.minhaOfertaId,
+        nome: reporte.autor,
+        tituloReporte: reporte.titulo,
+        mensagensNaoLidas: reporte.mensagensNaoLidasMinhaOferta,
+      })),
+  ];
   const totalMensagensNaoVisualizadas = conversasNaoVisualizadas.reduce(
     (total, conversa) => total + conversa.mensagensNaoLidas,
     0,
@@ -210,6 +227,7 @@ function ConteudoReportes({ somenteMeus = false, visualizacao = "lista", erroMap
 
   const exigirLogin = () => {
     if (usuario) return true;
+    notificar.info("Faça login para continuar.");
     navegar(CAMINHOS.login);
     return false;
   };
@@ -233,10 +251,15 @@ function ConteudoReportes({ somenteMeus = false, visualizacao = "lista", erroMap
     if (!exigirLogin()) return;
     setEditandoId(null);
     setFormulario(FORMULARIO_VAZIO);
+    setFormularioInicial(FORMULARIO_VAZIO);
     setErros({});
-    setErroForm("");
     setFormAberto(true);
   };
+
+  useEffect(() => {
+    if (!local.state?.abrirMensagens) return;
+    navegar(local.pathname, { replace: true, state: null });
+  }, [local.pathname, local.state, navegar]);
 
   useEffect(() => {
     if (!local.state?.abrirFormularioReporte) return;
@@ -249,7 +272,7 @@ function ConteudoReportes({ somenteMeus = false, visualizacao = "lista", erroMap
     requisicaoCep.current = null;
     setBuscandoCep(false);
     setEditandoId(reporte.id);
-    setFormulario({
+    const dadosReporte = {
       titulo: reporte.titulo,
       cep: reporte.cep ?? "",
       rua: reporte.rua ?? "",
@@ -262,17 +285,28 @@ function ConteudoReportes({ somenteMeus = false, visualizacao = "lista", erroMap
       imagens: reporte.imagens,
       multirao: reporte.multirao,
       status: reporte.status,
-    });
+    };
+    setFormulario(dadosReporte);
+    setFormularioInicial(dadosReporte);
     setErros({});
-    setErroForm("");
     setFormAberto(true);
   };
 
-  const fecharFormulario = () => {
+  const descartarFormulario = () => {
     requisicaoCep.current?.abort();
     requisicaoCep.current = null;
     setBuscandoCep(false);
+    setConfirmarDescarte(false);
     setFormAberto(false);
+  };
+
+  const fecharFormulario = () => {
+    const alterado = JSON.stringify(formulario) !== JSON.stringify(formularioInicial);
+    if (alterado) {
+      setConfirmarDescarte(true);
+      return;
+    }
+    descartarFormulario();
   };
 
   const buscarCep = async (cepInformado) => {
@@ -302,12 +336,13 @@ function ConteudoReportes({ somenteMeus = false, visualizacao = "lista", erroMap
         estado: "",
         localizacao: endereco.bairro ? "" : atual.localizacao,
       }));
+      notificar.sucesso("Endereço preenchido pelo CEP.");
       return true;
     } catch (problema) {
       if (problema.name !== "AbortError" && requisicaoCep.current === controller) {
-        setErroCep(
-          problema.message || "Não foi possível consultar o CEP.",
-        );
+        const mensagem = problema.message || "Não foi possível consultar o CEP.";
+        setErroCep(mensagem);
+        notificar.erro(mensagem);
       }
       return false;
     } finally {
@@ -323,7 +358,6 @@ function ConteudoReportes({ somenteMeus = false, visualizacao = "lista", erroMap
     evento.target.value = "";
     if (arquivos.length === 0) return;
 
-    setErroForm("");
     try {
       const { imagens, erros: errosArquivo } = await prepararImagens(
         arquivos,
@@ -336,9 +370,9 @@ function ConteudoReportes({ somenteMeus = false, visualizacao = "lista", erroMap
         }));
         setErros((atual) => ({ ...atual, imagens: "" }));
       }
-      if (errosArquivo.length > 0) setErroForm(errosArquivo.join(" "));
+      if (errosArquivo.length > 0) notificar.erro(errosArquivo.join(" "));
     } catch (problema) {
-      setErroForm(problema.message);
+      notificar.erro(problema.message);
     }
   };
 
@@ -354,7 +388,6 @@ function ConteudoReportes({ somenteMeus = false, visualizacao = "lista", erroMap
           ? "Adicione pelo menos uma imagem."
           : "",
     }));
-    setErroForm("");
   };
 
   /* Validação no front. O backend deve validar de novo — nunca confie
@@ -383,14 +416,15 @@ function ConteudoReportes({ somenteMeus = false, visualizacao = "lista", erroMap
     }
 
     setErros(novos);
-    return Object.keys(novos).length === 0;
+    const valido = Object.keys(novos).length === 0;
+    if (!valido) notificar.camposObrigatorios(novos);
+    return valido;
   };
 
   const salvar = async () => {
     if (!validar()) return;
 
     setSalvando(true);
-    setErroForm("");
 
     try {
       /* Posição no mapa a partir do endereço; se não achar, salva sem ela. */
@@ -408,17 +442,17 @@ function ConteudoReportes({ somenteMeus = false, visualizacao = "lista", erroMap
 
       if (editandoId) {
         await atualizar(editandoId, formularioComLocalizacao);
-        setAviso(`Reporte atualizado.${avisoMapa}`);
+        notificar.sucesso(`Reporte atualizado.${avisoMapa}`);
       } else {
         await criar(formularioComLocalizacao);
-        setAviso(`Reporte cadastrado. Obrigado por ajudar!${avisoMapa}`);
+        notificar.sucesso(`Reporte cadastrado. Obrigado por ajudar!${avisoMapa}`);
       }
 
       setFormAberto(false);
       setEditandoId(null);
       setFormulario(FORMULARIO_VAZIO);
     } catch (problema) {
-      setErroForm(problema.message);
+      notificar.erro(problema.message);
     } finally {
       setSalvando(false);
     }
@@ -427,14 +461,13 @@ function ConteudoReportes({ somenteMeus = false, visualizacao = "lista", erroMap
   const confirmarExclusao = async () => {
     if (!exigirLogin()) return;
     setExcluindo(true);
-    setErroAcao("");
 
     try {
       await excluir(paraExcluir.id);
-      setAviso(`"${paraExcluir.titulo}" foi excluído.`);
+      notificar.sucesso(`"${paraExcluir.titulo}" foi excluído.`);
       setParaExcluir(null);
     } catch (problema) {
-      setErroAcao(problema.message);
+      notificar.erro(problema.message);
     } finally {
       setExcluindo(false);
     }
@@ -443,7 +476,7 @@ function ConteudoReportes({ somenteMeus = false, visualizacao = "lista", erroMap
   const abrirChat = (id) => {
     if (!exigirLogin()) return;
     setIdChat(id);
-    carregarDetalhes(id).catch(() => setErroAcao("Não foi possível carregar o chat."));
+    carregarDetalhes(id).catch(() => notificar.erro("Não foi possível carregar o chat."));
   };
 
   /* Se já estou ajudando, o clique desfaz. Se não, abre o formulário. */
@@ -453,7 +486,6 @@ function ConteudoReportes({ somenteMeus = false, visualizacao = "lista", erroMap
 
     setFormularioAjuda(FORMULARIO_AJUDA_VAZIO);
     setErrosAjuda({});
-    setErroOferta("");
     setIdAjuda(reporte.id);
   };
 
@@ -463,7 +495,6 @@ function ConteudoReportes({ somenteMeus = false, visualizacao = "lista", erroMap
       [campo]: evento.target.value,
     }));
     setErrosAjuda((atual) => ({ ...atual, [campo]: "" }));
-    setErroOferta("");
   };
 
   const enviarOfertaAjuda = async (id, dados) => {
@@ -475,16 +506,18 @@ function ConteudoReportes({ somenteMeus = false, visualizacao = "lista", erroMap
       novosErros.mensagem = "Descreva como você pode ajudar.";
     }
     setErrosAjuda(novosErros);
-    if (Object.keys(novosErros).length > 0) return;
+    if (Object.keys(novosErros).length > 0) {
+      notificar.camposObrigatorios(novosErros);
+      return;
+    }
 
     setEnviandoOferta(true);
-    setErroOferta("");
     try {
       await enviarOferta(id, dados);
       setIdAjuda(null);
-      setAviso("Sua oferta de ajuda foi enviada ao responsável pelo reporte.");
+      notificar.sucesso("Sua oferta de ajuda foi enviada ao responsável pelo reporte.");
     } catch (problema) {
-      setErroOferta(problema.message);
+      notificar.erro(problema.message);
     } finally {
       setEnviandoOferta(false);
     }
@@ -494,20 +527,16 @@ function ConteudoReportes({ somenteMeus = false, visualizacao = "lista", erroMap
     if (!exigirLogin() || iniciandoConversaId !== null) return;
 
     setIniciandoConversaId(ofertaId);
-    setErroConversaAjuda("");
     try {
       const mensagens = await listarMensagensConversaAjuda(ofertaId);
       setMensagensConversaInicial(mensagens);
       marcarMensagensLidas(ofertaId);
       setIdOfertas(null);
       setMostrarSelecaoConversa(false);
+      setMensagensAbertas(false);
       setIdConversaAjuda(ofertaId);
     } catch (problema) {
-      if (idOfertas !== null) {
-        setErroConversaAjuda(problema.message);
-      } else {
-        setErroAcao(problema.message);
-      }
+      notificar.erro(problema.message);
     } finally {
       setIniciandoConversaId(null);
     }
@@ -516,7 +545,7 @@ function ConteudoReportes({ somenteMeus = false, visualizacao = "lista", erroMap
   const tratarFalhaAcessoConversa = useCallback((mensagem) => {
     setIdConversaAjuda(null);
     setMensagensConversaInicial([]);
-    setErroAcao(mensagem);
+    notificar.erro(mensagem);
   }, []);
 
   const fecharConversaAjuda = useCallback(() => {
@@ -527,17 +556,16 @@ function ConteudoReportes({ somenteMeus = false, visualizacao = "lista", erroMap
   const participarMutirao = async (reporte) => {
     if (!exigirLogin() || participacaoPendenteId !== null) return;
     setParticipacaoPendenteId(reporte.id);
-    setErroAcao("");
 
     try {
       const participando = await alternarParticipacao(reporte.id);
-      setAviso(
+      notificar.sucesso(
         participando
           ? `Você confirmou presença no mutirão de "${reporte.titulo}".`
           : `Você saiu do mutirão de "${reporte.titulo}".`,
       );
     } catch (problema) {
-      setErroAcao(problema.message);
+      notificar.erro(problema.message);
     } finally {
       setParticipacaoPendenteId(null);
     }
@@ -547,18 +575,17 @@ function ConteudoReportes({ somenteMeus = false, visualizacao = "lista", erroMap
      o status só muda depois que o backend aceitar. */
   const mudarStatus = async (reporte, novoStatus) => {
     if (!exigirLogin()) return;
-    setErroAcao("");
 
     if (tipoMudancaStatus(reporte.status, novoStatus)) {
-      setErroStatus("");
       setMudancaStatus({ reporte, novoStatus });
       return;
     }
 
     try {
       await alterarStatus(reporte, novoStatus);
+      notificar.sucesso(`"${reporte.titulo}" agora está ${infoStatus(novoStatus).label.toLowerCase()}.`);
     } catch (problema) {
-      setErroAcao(problema.message);
+      notificar.erro(problema.message);
     }
   };
 
@@ -566,14 +593,13 @@ function ConteudoReportes({ somenteMeus = false, visualizacao = "lista", erroMap
     if (!mudancaStatus) return;
     const { reporte, novoStatus } = mudancaStatus;
     setMudandoStatus(true);
-    setErroStatus("");
 
     try {
       await alterarStatus(reporte, novoStatus, detalhes);
       setMudancaStatus(null);
-      setAviso(`"${reporte.titulo}" agora está ${infoStatus(novoStatus).label.toLowerCase()}.`);
+      notificar.sucesso(`"${reporte.titulo}" agora está ${infoStatus(novoStatus).label.toLowerCase()}.`);
     } catch (problema) {
-      setErroStatus(problema.message);
+      notificar.erro(problema.message);
     } finally {
       setMudandoStatus(false);
     }
@@ -630,6 +656,7 @@ function ConteudoReportes({ somenteMeus = false, visualizacao = "lista", erroMap
         estatisticas={estatisticas}
         filtroAtivo={filtros.status}
         meusAtivo={somenteMeus}
+        exibirMeus={Boolean(usuario)}
         onFiltrar={(valor) => alterarFiltro("status", valor)}
         onVerMeus={() => navegar(CAMINHOS.meusReportes)}
       />
@@ -669,14 +696,6 @@ function ConteudoReportes({ somenteMeus = false, visualizacao = "lista", erroMap
             onAlterar={alterarFiltro}
           />
 
-          <Alerta tipo="sucesso" onFechar={() => setAviso("")}>
-            {aviso}
-          </Alerta>
-
-          <Alerta tipo="erro" onFechar={() => setErroAcao("")}>
-            {erroAcao}
-          </Alerta>
-
           <Alerta tipo="erro">
             {erroMensagensNaoLidas
               ? `Não foi possível verificar novas mensagens: ${erroMensagensNaoLidas}`
@@ -691,54 +710,6 @@ function ConteudoReportes({ somenteMeus = false, visualizacao = "lista", erroMap
             </Alerta>
           )}
 
-          {somenteMeus && conversasNaoVisualizadas.length > 0 && (
-            <section
-              className="reportes__mensagens-pendentes"
-              aria-labelledby="reportes-mensagens-pendentes-titulo"
-            >
-              <div className="reportes__mensagens-pendentes-cabecalho">
-                <div>
-                  <h3 id="reportes-mensagens-pendentes-titulo">
-                    Mensagens privadas não visualizadas
-                  </h3>
-                  <p>
-                    Você tem {totalMensagensNaoVisualizadas} mensagem(ns) nova(s)
-                    {" "}em {conversasNaoVisualizadas.length} conversa(s).
-                  </p>
-                </div>
-                <span
-                  className="reportes__mensagens-pendentes-total"
-                  aria-label={`${totalMensagensNaoVisualizadas} mensagens não visualizadas`}
-                >
-                  {totalMensagensNaoVisualizadas}
-                </span>
-              </div>
-              <ul className="reportes__mensagens-pendentes-lista">
-                {conversasNaoVisualizadas.map((conversa) => (
-                  <li key={conversa.id}>
-                    <span className="reportes__mensagens-pendentes-detalhe">
-                      <strong>{conversa.nome}</strong>
-                      <span>
-                        {conversa.tituloReporte} · {conversa.mensagensNaoLidas}
-                        {" "}mensagem(ns) nova(s)
-                      </span>
-                    </span>
-                    <Botao
-                      variante="secundario"
-                      tamanho="pequeno"
-                      icone={<MessageCircle size={16} aria-hidden="true" />}
-                      desabilitado={iniciandoConversaId !== null}
-                      onClick={() => iniciarConversaAjuda(conversa.id)}
-                    >
-                      {iniciandoConversaId === conversa.id
-                        ? "Abrindo..."
-                        : "Abrir chat"}
-                    </Botao>
-                  </li>
-                ))}
-              </ul>
-            </section>
-          )}
 
           {/* Os 3 estados de qualquer listagem: carregando, erro, conteúdo. */}
           {carregando ? (
@@ -797,7 +768,7 @@ function ConteudoReportes({ somenteMeus = false, visualizacao = "lista", erroMap
 
       <Modal
         aberto={formAberto}
-        onFechar={fecharFormulario}
+        onFechar={confirmarDescarte ? undefined : fecharFormulario}
         titulo={editandoId ? "Editar reporte" : "Reportar área poluída"}
         onConfirmar={salvar}
         rotuloConfirmar={editandoId ? "Salvar alterações" : "Enviar reporte"}
@@ -808,13 +779,54 @@ function ConteudoReportes({ somenteMeus = false, visualizacao = "lista", erroMap
           formulario={formulario}
           onAlterar={alterarFormulario}
           erros={erros}
-          erroGeral={erroForm}
           onBuscarCep={buscarCep}
           buscandoCep={buscandoCep}
           erroCep={erroCep}
           onArquivoSelecionado={selecionarImagem}
           onRemoverImagem={removerImagem}
         />
+      </Modal>
+
+      <Modal
+        aberto={mensagensAbertas}
+        onFechar={() => setMensagensAbertas(false)}
+        titulo="Mensagens não lidas"
+        largura="520px"
+      >
+        {conversasNaoVisualizadas.length === 0 ? (
+          <p className="reportes__ofertas-vazio">Nenhuma mensagem nova.</p>
+        ) : (
+          <>
+            <p className="reportes__ofertas-vazio">
+              Você tem {totalMensagensNaoVisualizadas} mensagem(ns) nova(s)
+              {" "}em {conversasNaoVisualizadas.length} conversa(s).
+            </p>
+            <ul className="reportes__mensagens-pendentes-lista">
+              {conversasNaoVisualizadas.map((conversa) => (
+                <li key={conversa.id}>
+                  <span className="reportes__mensagens-pendentes-detalhe">
+                    <strong>{conversa.nome}</strong>
+                    <span>
+                      {conversa.tituloReporte} · {conversa.mensagensNaoLidas}
+                      {" "}mensagem(ns) nova(s)
+                    </span>
+                  </span>
+                  <Botao
+                    variante="secundario"
+                    tamanho="pequeno"
+                    icone={<MessageCircle size={16} aria-hidden="true" />}
+                    desabilitado={iniciandoConversaId !== null}
+                    onClick={() => iniciarConversaAjuda(conversa.id)}
+                  >
+                    {iniciandoConversaId === conversa.id
+                      ? "Abrindo..."
+                      : "Abrir chat"}
+                  </Botao>
+                </li>
+              ))}
+            </ul>
+          </>
+        )}
       </Modal>
 
       {reporteChat && (
@@ -837,10 +849,8 @@ function ConteudoReportes({ somenteMeus = false, visualizacao = "lista", erroMap
           onEnviar={enviarOfertaAjuda}
           formulario={formularioAjuda}
           erros={errosAjuda}
-          erroGeral={erroOferta}
           enviando={enviandoOferta}
           onAlterarCampo={alterarCampoAjuda}
-          onLimparErroGeral={() => setErroOferta("")}
         />
       )}
 
@@ -865,12 +875,6 @@ function ConteudoReportes({ somenteMeus = false, visualizacao = "lista", erroMap
                   Escolha com qual pessoa deseja conversar. Cada conversa é privada.
                 </p>
               )}
-              <Alerta
-                tipo="erro"
-                onFechar={() => setErroConversaAjuda("")}
-              >
-                {erroConversaAjuda}
-              </Alerta>
               {(reporteOfertas.ofertas ?? []).map((oferta) => (
                 <article className="reportes__oferta" key={oferta.id}>
                   <div className="reportes__oferta-cabecalho">
@@ -943,10 +947,34 @@ function ConteudoReportes({ somenteMeus = false, visualizacao = "lista", erroMap
           onFechar={() => setMudancaStatus(null)}
           onConfirmar={confirmarMudancaStatus}
           enviando={mudandoStatus}
-          erroGeral={erroStatus}
-          onLimparErroGeral={() => setErroStatus("")}
         />
       )}
+
+      <Modal
+        aberto={confirmarDescarte}
+        onFechar={() => setConfirmarDescarte(false)}
+        titulo="Descartar alterações?"
+        largura="440px"
+      >
+        <p>
+          Você preencheu dados neste reporte. Se fechar agora, tudo o que foi
+          digitado será perdido.
+        </p>
+
+        <div className="reportes__confirmacao">
+          <Botao
+            variante="secundario"
+            onClick={() => setConfirmarDescarte(false)}
+            larguraTotal
+          >
+            Continuar editando
+          </Botao>
+
+          <Botao variante="primario" onClick={descartarFormulario} larguraTotal>
+            Descartar
+          </Botao>
+        </div>
+      </Modal>
 
       <Modal
         aberto={Boolean(paraExcluir)}

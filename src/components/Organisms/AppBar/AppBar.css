@@ -216,7 +216,46 @@
   }
 
   /* Sobra só o "+" no botão de reportar. */
-  .appbar__texto-reportar {
+  .appbar__texto-reportar,
+  .appbar__texto-login {
     display: none;
   }
+}
+
+.appbar__mensagens {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 40px;
+  height: 40px;
+  border: 1px solid var(--borda-padrao);
+  border-radius: var(--raio-total);
+  background: var(--superficie-suave);
+  color: var(--texto-principal);
+  cursor: pointer;
+  transition: background var(--transicao), color var(--transicao);
+}
+
+.appbar__mensagens:hover {
+  background: var(--cor-primaria-clara);
+  color: var(--cor-primaria);
+}
+
+.appbar__mensagens-total {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  display: grid;
+  place-items: center;
+  min-width: 18px;
+  height: 18px;
+  padding-inline: 4px;
+  border-radius: var(--raio-total);
+  background: var(--cor-perigo);
+  color: #fff;
+  font-size: 0.7rem;
+  font-weight: var(--peso-negrito);
+  line-height: 1;
 }

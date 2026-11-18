@@ -4,7 +4,7 @@ import { Send } from "lucide-react";
 import "./ModalConversaAjuda.css";
 import Modal from "../../moleculas/Modal/Modal";
 import Textarea from "../../atomos/Textarea/Textarea";
-import Alerta from "../../moleculas/Alerta/Alerta";
+import { notificar } from "../../../utils/notificar";
 import { formatarDataHora } from "../../utils/formatar";
 import {
   enviarMensagemConversaAjuda,
@@ -20,7 +20,6 @@ export default function ModalConversaAjuda({
 }) {
   const [mensagens, setMensagens] = useState(mensagensIniciais);
   const [texto, setTexto] = useState("");
-  const [erro, setErro] = useState("");
   const [carregando, setCarregando] = useState(false);
   const [enviando, setEnviando] = useState(false);
   const listaRef = useRef(null);
@@ -32,7 +31,6 @@ export default function ModalConversaAjuda({
       const resultado = await listarMensagensConversaAjuda(oferta.id);
       if (ativo()) {
         setMensagens(resultado);
-        setErro("");
       }
     } catch (problema) {
       if (ativo()) {
@@ -40,7 +38,7 @@ export default function ModalConversaAjuda({
           acessoNegadoRef.current = true;
           onFalhaAcesso?.(problema.message);
         } else {
-          setErro(problema.message);
+          notificar.erro(problema.message);
         }
       }
     } finally {
@@ -73,7 +71,6 @@ export default function ModalConversaAjuda({
     if (!mensagem || enviando || acessoNegadoRef.current) return;
 
     setEnviando(true);
-    setErro("");
     try {
       const criada = await enviarMensagemConversaAjuda(oferta.id, mensagem);
       setMensagens((atuais) =>
@@ -87,7 +84,7 @@ export default function ModalConversaAjuda({
         acessoNegadoRef.current = true;
         onFalhaAcesso?.(problema.message);
       } else {
-        setErro(problema.message);
+        notificar.erro(problema.message);
       }
     } finally {
       setEnviando(false);
@@ -158,9 +155,6 @@ export default function ModalConversaAjuda({
         </div>
       )}
 
-      <Alerta tipo="erro" onFechar={() => setErro("")}>
-        {erro}
-      </Alerta>
 
       <Textarea
         label="Mensagem"

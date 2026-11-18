@@ -1,11 +1,11 @@
 import { useState } from "react";
 
 import Modal from "../../moleculas/Modal/Modal";
-import Alerta from "../../moleculas/Alerta/Alerta";
 import CampoImagens from "../../moleculas/CampoImagens/CampoImagens";
 import Textarea from "../../atomos/Textarea/Textarea";
 import { status as infoStatus, tipoMudancaStatus } from "../../../config/listas";
 import { prepararImagens } from "../../utils/formatar";
+import { notificar } from "../../../utils/notificar";
 
 const TAMANHO_MAXIMO_JUSTIFICATIVA = 500;
 
@@ -15,13 +15,10 @@ export default function ModalStatusReporte({
   onFechar,
   onConfirmar,
   enviando = false,
-  erroGeral = "",
-  onLimparErroGeral,
 }) {
   const [imagens, setImagens] = useState([]);
   const [justificativa, setJustificativa] = useState("");
   const [erros, setErros] = useState({});
-  const [erroArquivo, setErroArquivo] = useState("");
 
   const tipo = tipoMudancaStatus(reporte.status, novoStatus);
   const de = infoStatus(reporte.status).label;
@@ -32,16 +29,15 @@ export default function ModalStatusReporte({
     evento.target.value = "";
     if (arquivos.length === 0) return;
 
-    setErroArquivo("");
     try {
       const resultado = await prepararImagens(arquivos, imagens.length);
       if (resultado.imagens.length > 0) {
         setImagens((atuais) => [...atuais, ...resultado.imagens]);
         setErros((atual) => ({ ...atual, imagens: "" }));
       }
-      if (resultado.erros.length > 0) setErroArquivo(resultado.erros.join(" "));
+      if (resultado.erros.length > 0) notificar.erro(resultado.erros.join(" "));
     } catch (problema) {
-      setErroArquivo(problema.message);
+      notificar.erro(problema.message);
     }
   };
 
@@ -53,6 +49,7 @@ export default function ModalStatusReporte({
     if (tipo === "resolver") {
       if (imagens.length === 0) {
         setErros({ imagens: "Anexe pelo menos uma foto da área limpa." });
+        notificar.aviso("Anexe pelo menos uma foto da área limpa.");
         return;
       }
       onConfirmar({ imagensConclusao: imagens });
@@ -63,6 +60,7 @@ export default function ModalStatusReporte({
       const texto = justificativa.trim();
       if (!texto) {
         setErros({ justificativa: "Informe o motivo para reabrir o reporte." });
+        notificar.aviso("Informe o motivo para reabrir o reporte.");
         return;
       }
       if (texto.length > TAMANHO_MAXIMO_JUSTIFICATIVA) {
@@ -100,10 +98,6 @@ export default function ModalStatusReporte({
       confirmando={enviando}
       largura={tipo === "confirmar" ? "440px" : "560px"}
     >
-      <Alerta tipo="erro" onFechar={onLimparErroGeral}>
-        {erroGeral}
-      </Alerta>
-
       {tipo === "confirmar" && (
         <p>
           Deseja alterar o status de <strong>{reporte.titulo}</strong> de{" "}
@@ -118,9 +112,6 @@ export default function ModalStatusReporte({
             <strong>{para}</strong>, anexe uma foto que comprove a limpeza do
             local.
           </p>
-          <Alerta tipo="erro" onFechar={() => setErroArquivo("")}>
-            {erroArquivo}
-          </Alerta>
           <CampoImagens
             label="Foto da conclusão"
             obrigatorio

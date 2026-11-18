@@ -16,7 +16,7 @@ async function autenticar(endpoint, dados) {
     }
 
     if (endpoint === "register" && resposta.status === 400) {
-      throw new Error("Este e-mail já está cadastrado.");
+      throw new Error("Não foi possível concluir o cadastro.");
     }
 
     throw new Error(

@@ -22,7 +22,7 @@ export default function Footer({
       titulo: "Participe",
       links: [
         { label: "Criar um reporte", href: "/reportes" },
-        { label: "Criar uma conta", href: "/login" },
+        { label: "Criar uma conta", href: "/login?modo=cadastrar" },
       ],
     },
   ],

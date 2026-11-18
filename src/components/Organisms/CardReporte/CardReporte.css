@@ -277,6 +277,15 @@
   color: var(--cor-sucesso);
 }
 
+.card-reporte__acao--encerrada {
+  color: var(--cor-sucesso);
+  cursor: default;
+}
+
+.card-reporte__acao--encerrada:hover {
+  text-decoration: none;
+}
+
 .card-reporte__acao--ativa {
   color: var(--cor-primaria);
   font-weight: var(--peso-semi);
