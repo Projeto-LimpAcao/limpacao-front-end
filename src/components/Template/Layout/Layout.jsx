@@ -14,10 +14,11 @@ import { notificar } from "../../../utils/notificar";
 export default function AppLayout({ children, onNovoReporte }) {
   const [sobreAberto, setSobreAberto] = useState(false);
   const [drawerAberto, setDrawerAberto] = useState(false);
-  const { usuario, estaLogado, sair } = useAuth();
+  const { usuario, estaLogado, ehAdmin, sair } = useAuth();
   const navegar = useNavigate();
   const mensagensNaoLidas = useMensagensNaoLidas(estaLogado);
-  const menuVisivel = MENU.filter(({ caminho, privado }) => {
+  const menuVisivel = MENU.filter(({ caminho, privado, admin }) => {
+    if (admin) return ehAdmin;
     if (privado) return estaLogado;
     if (caminho === CAMINHOS.login) return !estaLogado;
     return true;

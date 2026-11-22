@@ -39,6 +39,7 @@ export const MENU = [
   { label: "Reportes", caminho: "/reportes", icone: null, privado: false },
   { label: "Mapa", caminho: "/mapa", icone: null, privado: false },
   { label: "Perfil", caminho: "/perfil", icone: null, privado: true },
+  { label: "Saúde", caminho: "/saude", icone: null, privado: true, admin: true },
   { label: "Login", caminho: "/login", icone: null, privado: false },
 ];
 

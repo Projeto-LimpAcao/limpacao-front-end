@@ -29,7 +29,11 @@ async function autenticar(endpoint, dados) {
     throw new Error("O servidor retornou dados de autenticação inválidos.");
   }
 
-  const usuario = { nome: sessao.nome, email: sessao.email };
+  const usuario = {
+    nome: sessao.nome,
+    email: sessao.email,
+    perfil: sessao.perfil ?? "USUARIO",
+  };
   localStorage.setItem(STORAGE_KEY, JSON.stringify(usuario));
   localStorage.setItem(TOKEN_KEY, sessao.token);
   return usuario;
