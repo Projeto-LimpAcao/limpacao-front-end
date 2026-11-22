@@ -6,6 +6,7 @@ import Perfil from "../components/pages/Perfil/Perfil";
 import Inicio from "../components/pages/Inicio/Inicio";
 import Reportes from "../components/pages/Reportes/Reportes";
 import Trabalhos from "../components/pages/Trabalhos/Trabalhos";
+import SaudeSistema from "../components/pages/SaudeSistema/SaudeSistema";
 import { useAuth } from "../hooks";
 
 function RotaPrivada({ children }) {
@@ -13,6 +14,20 @@ function RotaPrivada({ children }) {
 
   if (!usuario) {
     return <Navigate to="/login" replace />;
+  }
+
+  return children;
+}
+
+function RotaAdmin({ children }) {
+  const { usuario, ehAdmin } = useAuth();
+
+  if (!usuario) {
+    return <Navigate to="/login" replace />;
+  }
+
+  if (!ehAdmin) {
+    return <Navigate to="/" replace />;
   }
 
   return children;
@@ -32,6 +47,14 @@ export default function Rotas() {
       <Route path="/trabalhos" element={<Trabalhos />} />
       <Route path="/reportes" element={<Reportes />} />
       <Route path="/mapa" element={<Reportes visualizacao="mapa" />} />
+      <Route
+        path="/saude"
+        element={
+          <RotaAdmin>
+            <SaudeSistema />
+          </RotaAdmin>
+        }
+      />
 
       <Route
         path="/meus-reportes"

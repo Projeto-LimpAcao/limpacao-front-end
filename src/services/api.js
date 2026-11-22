@@ -1,5 +1,7 @@
 const API_URL = (import.meta.env.VITE_API_URL || "/api").replace(/\/+$/, "");
 
+export const ACTUATOR_URL = `${API_URL.replace(/\/api$/, "")}/actuator`;
+
 /* Monta a URL de um arquivo salvo no backend ("/api/arquivos/...")
    respeitando o endereço da API configurado em VITE_API_URL. */
 export function urlArquivo(caminho) {
