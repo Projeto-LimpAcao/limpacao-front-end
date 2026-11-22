@@ -5,8 +5,16 @@ export const campoPreenchido = (valor) => String(valor ?? "").trim().length > 0;
 export const emailValido = (email) =>
   /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(email ?? "").trim());
 
-// mínimo de 8 caracteres
-export const senhaForte = (senha) => String(senha ?? "").length >= 8;
+export const REQUISITOS_SENHA = [
+  { texto: "Pelo menos 8 caracteres", atende: (senha) => senha.length >= 8 },
+  { texto: "Uma letra maiúscula", atende: (senha) => /[A-Z]/.test(senha) },
+  { texto: "Uma letra minúscula", atende: (senha) => /[a-z]/.test(senha) },
+  { texto: "Um número", atende: (senha) => /\d/.test(senha) },
+  { texto: "Um caractere especial (!@#$...)", atende: (senha) => /[^A-Za-z0-9\s]/.test(senha) },
+];
+
+export const senhaForte = (senha) =>
+  REQUISITOS_SENHA.every(({ atende }) => atende(String(senha ?? "")));
 
 // aceita fixo (10 dígitos) ou celular (11 dígitos), com ou sem máscara
 export const telefoneValido = (telefone) => {
@@ -48,8 +56,8 @@ export const validarRedefinicaoSenha = ({ codigo, senha, confirmarSenha }) => {
     erros.codigo = "O código deve ter 6 dígitos.";
   }
 
-  if (String(senha ?? "").length < 6) {
-    erros.senha = "A senha precisa ter pelo menos 6 caracteres.";
+  if (!senhaForte(senha)) {
+    erros.senha = "A senha não atende aos requisitos de segurança.";
   }
 
   if (String(senha ?? "") !== String(confirmarSenha ?? "")) {
@@ -70,8 +78,8 @@ export const validarCadastro =({ nome, email, senha, confirmarSenha }) => {
     erros.email = "Digite um e-mail válido.";
   }
 
-  if (String(senha ?? "").length < 6) {
-    erros.senha = "A senha precisa ter pelo menos 6 caracteres.";
+  if (!senhaForte(senha)) {
+    erros.senha = "A senha não atende aos requisitos de segurança.";
   }
 
   if (String(senha ?? "") !== String(confirmarSenha ?? "")) {

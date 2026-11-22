@@ -78,6 +78,7 @@ export default function CardReporte({
   const estouAjudando = reporte.minhaParticipacao?.ajudando;
   const estouParticipando = reporte.minhaParticipacao?.participando;
   const souDono = estaLogado && reporte.souDono;
+  const resolvido = reporte.status === "resolved";
 
   return (
     <>
@@ -192,7 +193,31 @@ export default function CardReporte({
               </button>
             )}
 
-            {!souDono && (
+            {!souDono && resolvido && (
+              <>
+                {estouAjudando && (
+                  <button
+                    type="button"
+                    className="card-reporte__acao card-reporte__acao--ativa"
+                    onClick={onConversarOferta}
+                  >
+                    <MessageCircle size={15} />
+                    Mensagens privadas
+                    {reporte.mensagensNaoLidasMinhaOferta > 0 && (
+                      <span className="card-reporte__mensagens-contagem">
+                        {reporte.mensagensNaoLidasMinhaOferta}
+                      </span>
+                    )}
+                  </button>
+                )}
+                <span className="card-reporte__acao card-reporte__acao--encerrada">
+                  <CheckCircle2 size={15} />
+                  Resolvido
+                </span>
+              </>
+            )}
+
+            {!souDono && !resolvido && (
               <>
                 <button
                   type="button"

@@ -40,7 +40,7 @@ export function useAuth() {
   }, []);
 
   const atualizarPerfil = useCallback(async (dados) => {
-    const usuarioAtualizado = await salvarPerfil(dados);
+    const usuarioAtualizado = { ...usuarioAtual, ...(await salvarPerfil(dados)) };
     authService.atualizarUsuarioSalvo(usuarioAtualizado);
     atualizarUsuario(usuarioAtualizado);
     return usuarioAtualizado;
@@ -50,6 +50,7 @@ export function useAuth() {
     () => ({
       usuario,
       estaLogado: Boolean(usuario),
+      ehAdmin: usuario?.perfil === "ADMIN",
       entrar,
       cadastrar,
       sair,

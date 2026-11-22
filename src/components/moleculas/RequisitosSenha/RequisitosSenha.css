@@ -1,0 +1,95 @@
+.requisitos-senha {
+  --nivel-cor: var(--cor-perigo);
+
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-sm);
+  padding: var(--espaco-sm) var(--espaco-md);
+  border: 1px solid color-mix(in srgb, var(--texto-secundario) 20%, transparent);
+  border-radius: var(--raio-md);
+  background: color-mix(in srgb, var(--texto-secundario) 5%, transparent);
+  font-size: var(--texto-xs);
+}
+
+.requisitos-senha--media {
+  --nivel-cor: var(--cor-aviso);
+}
+
+.requisitos-senha--forte {
+  --nivel-cor: var(--cor-sucesso);
+}
+
+.requisitos-senha__topo {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  color: var(--texto-secundario);
+}
+
+.requisitos-senha__nivel {
+  color: var(--nivel-cor);
+  transition: color 0.25s ease;
+}
+
+.requisitos-senha__barra {
+  height: 6px;
+  border-radius: var(--raio-total);
+  background: color-mix(in srgb, var(--texto-secundario) 18%, transparent);
+  overflow: hidden;
+}
+
+.requisitos-senha__barra span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--nivel-cor);
+  transition: width 0.3s ease, background 0.3s ease;
+}
+
+.requisitos-senha__lista {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+  gap: 6px var(--espaco-md);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.requisitos-senha__item {
+  display: flex;
+  align-items: center;
+  gap: var(--espaco-xs);
+  color: var(--texto-secundario);
+  transition: color 0.2s ease;
+}
+
+.requisitos-senha__item--ok {
+  color: var(--texto-principal);
+}
+
+.requisitos-senha__icone {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 16px;
+  height: 16px;
+  border: 1.5px solid color-mix(in srgb, var(--texto-secundario) 45%, transparent);
+  border-radius: 50%;
+  color: #fff;
+  transition: background 0.2s ease, border-color 0.2s ease;
+}
+
+.requisitos-senha__item--ok .requisitos-senha__icone {
+  border-color: var(--cor-sucesso);
+  background: var(--cor-sucesso);
+}
+
+.requisitos-senha__sr {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}

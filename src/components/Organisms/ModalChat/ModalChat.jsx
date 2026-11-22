@@ -4,7 +4,7 @@ import "./ModalChat.css";
 import Modal from "../../moleculas/Modal/Modal";
 import Textarea from "../../atomos/Textarea/Textarea";
 import Botao from "../../atomos/Botao/Botao";
-import Alerta from "../../moleculas/Alerta/Alerta";
+import { notificar } from "../../../utils/notificar";
 import { formatarDataHora } from "../../../utils/formatar";
 import {
   criarClienteChat,
@@ -50,7 +50,6 @@ export default function ModalChat({
   const mensagensRef = useRef(mensagens);
   const [texto, setTexto] = useState("");
   const [mensagemRespondida, setMensagemRespondida] = useState(null);
-  const [erro, setErro] = useState("");
   const [estadoConexao, setEstadoConexao] = useState(
     usuario ? "conectando" : "demo",
   );
@@ -142,7 +141,7 @@ export default function ModalChat({
           onHistoricoCarregado?.(reporteId, mensagensAtualizadas);
         })
         .catch((problema) => {
-          if (ativo) setErro(problema.message);
+          if (ativo) notificar.erro(problema.message);
         });
     };
 
@@ -150,7 +149,6 @@ export default function ModalChat({
       onConnect: () => {
         if (!ativo) return;
         setEstadoConexao("conectado");
-        setErro("");
         cliente.subscribe(`/topic/chat/${reporteId}`, (frame) => {
           if (!ativo) return;
           try {
@@ -179,7 +177,7 @@ export default function ModalChat({
               onMensagemRecebida?.(reporteId, mensagem);
             }
           } catch {
-            setErro("O servidor enviou uma mensagem inválida.");
+            notificar.erro("O servidor enviou uma mensagem inválida.");
           }
         });
         carregarHistorico();
@@ -187,19 +185,19 @@ export default function ModalChat({
       onStompError: () => {
         if (ativo) {
           setEstadoConexao("erro");
-          setErro("O servidor recusou a conexão do chat. Tente novamente.");
+          notificar.erro("O servidor recusou a conexão do chat. Tente novamente.");
         }
       },
       onWebSocketError: () => {
         if (ativo) {
           setEstadoConexao("erro");
-          setErro("Não foi possível conectar ao chat. Verifique se o servidor está disponível.");
+          notificar.erro("Não foi possível conectar ao chat. Verifique se o servidor está disponível.");
         }
       },
       onWebSocketClose: () => {
         if (ativo) {
           setEstadoConexao("reconectando");
-          setErro("Conexão perdida. Tentando reconectar ao chat...");
+          notificar.erro("Conexão perdida. Tentando reconectar ao chat...");
         }
       },
     });
@@ -227,11 +225,10 @@ export default function ModalChat({
   const enviar = async () => {
     const textoMensagem = texto.trim();
     if (!textoMensagem) {
-      setErro("Escreva uma mensagem antes de enviar.");
+      notificar.erro("Escreva uma mensagem antes de enviar.");
       return;
     }
 
-    setErro("");
     setEnviando(true);
     try {
       if (autenticado) {
@@ -281,7 +278,7 @@ export default function ModalChat({
       setTexto("");
       setMensagemRespondida(null);
     } catch (problema) {
-      setErro(problema.message || "Não foi possível enviar a mensagem.");
+      notificar.erro(problema.message || "Não foi possível enviar a mensagem.");
     } finally {
       setEnviando(false);
     }
@@ -396,9 +393,6 @@ export default function ModalChat({
         )}
       </div>
 
-      <Alerta tipo="erro" onFechar={() => setErro("")}>
-        {erro}
-      </Alerta>
 
       {mensagemRespondida && (
         <div className="chat__resposta-selecionada">

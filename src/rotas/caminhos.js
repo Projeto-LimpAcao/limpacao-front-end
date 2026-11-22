@@ -7,4 +7,5 @@ export const CAMINHOS = {
   mapa: "/mapa",
   meusReportes: "/meus-reportes",
   perfil: "/perfil",
+  saude: "/saude",
 };
