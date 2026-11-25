@@ -674,7 +674,7 @@ function ConteudoReportes({ somenteMeus = false, visualizacao = "lista", erroMap
               </h2>
               <p className="reportes__descricao">
                 {ehMapa
-                  ? "Veja onde estão os reportes ainda não resolvidos. Clique em um ponto para abrir o reporte."
+                  ? "Veja onde estão os reportes ainda não resolvidos."
                   : somenteMeus
                     ? `Olá, ${usuario.nome}. Aqui estão os reportes que você criou — dá pra editar, mudar o status e excluir.`
                     : "Veja os problemas ambientais reportados pelas comunidades e ofereça ajuda."}
